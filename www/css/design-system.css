@@ -1,0 +1,32 @@
+:root {
+    /* Required Core Overrides */
+    --bg-midnight: #05070A !important;
+    --bg-card: #161B22 !important;
+    --text-white: #FFFFFF !important;
+    --text-silver: #A0A0A0 !important;
+    --accent-cyan: #00D1FF !important;
+
+    /* Legacy Map for existing components */
+    --bg-primary: var(--bg-midnight);
+    --bg-dark: var(--bg-midnight);
+    --text-main: var(--text-white);
+    --text-primary: var(--text-white);
+    --text-dim: var(--text-silver);
+    --text-secondary: var(--text-silver);
+    --accent-primary: var(--accent-cyan);
+    --accent-success: #FF5F1F;
+    --electric-volt: var(--accent-cyan);
+    --border-subtle: rgba(255, 255, 255, 0.1);
+
+    /* Essential Formats missing due to previous reset */
+    --font-main: 'Inter', sans-serif;
+    --space-xs: 4px;
+    --space-sm: 8px;
+    --space-md: 16px;
+    --space-lg: 24px;
+    --space-xl: 32px;
+    --radius-sm: 6px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-full: 9999px;
+}

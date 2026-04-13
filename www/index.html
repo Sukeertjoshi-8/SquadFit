@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="SquadFit - Elite Fitness Tracking and Arena Mechanics">
+    <title>SquadFit - Elite Fitness Tracking</title>
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+    
+    <!-- Mobile Drag Drop Polyfill -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mobile-drag-drop/default.css">
+    <script src="https://cdn.jsdelivr.net/npm/mobile-drag-drop/index.min.js"></script>
+    
+    <link rel="stylesheet" href="css/design-system.css">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div id="app-container">
+        <!-- Views will be injected here by app.js -->
+    </div>
+
+    <!-- Navigation Bar (Hidden on Auth/Onboarding) -->
+    <nav id="bottom-nav" class="glass-nav hidden">
+        <button class="nav-item active" data-view="dashboard">
+            <span class="icon">🏠</span>
+            <span class="label">Home</span>
+        </button>
+        <button class="nav-item" data-view="vault">
+            <span class="icon">📚</span>
+            <span class="label">Vault</span>
+        </button>
+        <button class="nav-item" data-view="folders">
+            <span class="icon">📁</span>
+            <span class="label">Squad</span>
+        </button>
+        <button class="nav-item" data-view="leaderboard">
+            <span class="icon">🏆</span>
+            <span class="label">Arena</span>
+        </button>
+        <button class="nav-item" data-view="profile">
+            <span class="icon">⚙️</span>
+            <span class="label">Profile</span>
+        </button>
+    </nav>
+
+    <!-- Global Rest Timer Overlay -->
+    <div id="rest-timer-overlay" class="hidden glass-panel timer-overlay">
+        <div class="timer-circle">
+            <svg viewBox="0 0 100 100">
+                <circle class="timer-bg" cx="50" cy="50" r="45"></circle>
+                <circle id="timer-progress-ring" class="timer-progress" cx="50" cy="50" r="45"></circle>
+            </svg>
+            <div class="time-display" id="timer-display">01:30</div>
+        </div>
+        <button id="skip-timer-btn" class="neon-btn timer-btn">Skip Rest</button>
+    </div>
+
+    <!-- MVC Scripts -->
+    <script src="js/Database_Logic.js"></script>
+    <script src="js/UI_Components.js"></script>
+    <script src="js/Leaderboard_Service.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

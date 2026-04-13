@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="SquadFit - Elite Fitness Tracking and Arena Mechanics">
+    <title>SquadFit - Elite Fitness Tracking</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+    
+    <!-- Mobile Drag Drop Polyfill -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mobile-drag-drop/default.css">
+    <script src="https://cdn.jsdelivr.net/npm/mobile-drag-drop/index.min.js"></script>
+    
+    <!-- Flatpickr -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" type="text/css" href="https://npmcdn.com/flatpickr/dist/themes/dark.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    
+    <link rel="stylesheet" href="css/design-system.css">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- Global Navigation Header -->
+    <header id="global-header" style="position: fixed; top: 0; left: 0; right: 0; padding: 16px; background: rgba(5,7,10,0.9); backdrop-filter: blur(10px); z-index: 1000; display: none;">
+        <button id="nav-back" class="secondary-btn" style="border: none; color: var(--accent-cyan); font-weight: bold; padding: 8px 16px;" onclick="app.goBack()">
+            ← Back
+        </button>
+    </header>
+
+    <script type="module" src="js/auth.js"></script>
+
+    <!-- Full-Screen Firebase Hybrid Login View -->
+    <div id="login-view" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: var(--bg-midnight); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10000; padding: 20px; box-sizing: border-box;">
+        <h1 style="color: var(--accent-cyan); font-size: 4rem; margin-bottom: 0.5rem; text-shadow: 0 0 20px rgba(0, 209, 255, 0.4);">SquadFit</h1>
+        <p style="color: var(--text-sec); margin-bottom: 2rem; font-size: 1.1rem;">The Ultimate Iron Arena</p>
+        
+        <div style="width: 100%; max-width: 320px; display: flex; flex-direction: column; gap: 12px; margin-bottom: 1.5rem;">
+            <div id="auth-login-form" style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
+                <input type="email" id="login-email" placeholder="Email Address" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-subtle); color: #FFF; border-radius: var(--radius-sm); font-size: 1rem; box-sizing: border-box;">
+                <input type="password" id="login-password" placeholder="Password" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-subtle); color: #FFF; border-radius: var(--radius-sm); font-size: 1rem; box-sizing: border-box;">
+                <button id="btn-login" class="neon-btn" style="width: 100%;">Log In</button>
+                <div style="text-align: center; margin-top: 8px;">
+                    <a href="#" id="link-to-signup" style="color: var(--text-sec); font-size: 0.9rem; text-decoration: underline;">New here? Create an Account</a>
+                </div>
+            </div>
+
+            <div id="auth-signup-form" style="display: none; flex-direction: column; gap: 12px; width: 100%;">
+                <input type="email" id="signup-email" placeholder="Email Address" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-subtle); color: #FFF; border-radius: var(--radius-sm); font-size: 1rem; box-sizing: border-box;">
+                <input type="password" id="signup-password" placeholder="Password" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-subtle); color: #FFF; border-radius: var(--radius-sm); font-size: 1rem; box-sizing: border-box;">
+                <button id="btn-signup" class="secondary-btn" style="width: 100%; border-color: var(--accent-cyan); color: var(--accent-cyan);">Create Account</button>
+                <div style="text-align: center; margin-top: 8px;">
+                    <a href="#" id="link-to-login" style="color: var(--text-sec); font-size: 0.9rem; text-decoration: underline;">Already have an account? Log In</a>
+                </div>
+            </div>
+            
+            <p id="auth-error-message" style="color: red; font-size: 14px; text-align: center; margin-top: 10px; min-height: 20px;"></p>
+        </div>
+
+        <div class="divider" style="color: var(--text-sec); font-size: 0.9rem; margin-bottom: 1.5rem;">--- OR ---</div>
+
+        <button id="google-login-btn" class="neon-btn" style="background: white; color: #333; box-shadow: none; display: flex; align-items: center; gap: 10px; font-size: 1.1rem; width: 100%; max-width: 320px; justify-content: center;">
+            <!-- Simple Google G icon SVG -->
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M22.5601 12.2501C22.5601 11.4701 22.4901 10.7201 22.3601 10.0001H12.0001V14.2601H17.9201C17.6601 15.6301 16.8801 16.7901 15.7101 17.5701V20.3401H19.2701C21.3601 18.4201 22.5601 15.6001 22.5601 12.2501Z" fill="#4285F4"/>
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M12.0002 23.0001C14.9702 23.0001 17.4602 22.0101 19.2702 20.3401L15.7102 17.5701C14.7302 18.2301 13.4702 18.6301 12.0002 18.6301C9.15024 18.6301 6.74024 16.7001 5.88024 14.1201H2.21024V16.9701C4.01024 20.5401 7.72024 23.0001 12.0002 23.0001Z" fill="#34A853"/>
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M5.88011 14.1201C5.66011 13.4701 5.54011 12.7501 5.54011 12.0001C5.54011 11.2501 5.66011 10.5301 5.88011 9.88011V7.03011H2.21011C1.46011 8.52011 1.03011 10.2101 1.03011 12.0001C1.03011 13.7901 1.46011 15.4801 2.21011 16.9701L5.88011 14.1201Z" fill="#FBBC05"/>
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M12.0002 5.37012C13.6202 5.37012 15.0702 5.93012 16.2202 7.02012L19.3402 3.89012C17.4502 2.14012 14.9602 1.00012 12.0002 1.00012C7.72024 1.00012 4.01024 3.46012 2.21024 7.03012L5.88024 9.88012C6.74024 7.30012 9.15024 5.37012 12.0002 5.37012Z" fill="#EA4335"/>
+            </svg>
+            Sign in with Google
+        </button>
+    </div>
+
+    <div id="app-container" style="padding-top: 60px; display: none;">
+        <!-- Views will be injected here by app.js -->
+    </div>
+
+    <!-- Onboarding Tollbooth View -->
+    <div id="onboarding-view" class="onboarding-wrapper fade-in hidden" style="display: none; padding-top: 60px; min-height: 100vh; background: var(--bg-midnight); flex-direction: column; align-items: center; padding: 20px; z-index: 9000; position: fixed; top: 0; left: 0; right: 0; bottom: 0; overflow-y: auto;">
+        <button id="temp-logout-btn" class="secondary-btn" style="position: absolute; top: 15px; right: 15px; z-index: 9999; padding: 8px 16px; font-size: 0.8rem; border-color: rgba(255, 95, 31, 0.5); color: #FF5F1F;">Emergency Logout</button>
+        <div id="step-indicator" class="ob-step-indicator">Step 1/5</div>
+        <div class="glass-panel" style="padding: var(--space-md); width: 100%; max-width: 400px; position: relative;">
+            
+            <div class="ob-progress-track">
+                <div id="ob-progress-bar" class="ob-progress-fill" style="width: 20%;"></div>
+            </div>
+
+            <h2 id="ob-title" style="margin-bottom: var(--space-md); font-size: 1.5rem; text-align: center;">Build Your Profile</h2>
+            
+            <!-- STEP 1: BASICS -->
+            <div id="ob-step-1">
+                <input type="text" id="ob-name" placeholder="Full Name" style="margin-bottom: 8px; font-size: 0.9rem; width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-subtle); color: #FFF; border-radius: var(--radius-sm); box-sizing: border-box;">
+                <input type="number" id="profile-age" placeholder="Age" min="13" max="100" style="margin-bottom: 8px; font-size: 0.9rem; width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-subtle); color: #FFF; border-radius: var(--radius-sm); box-sizing: border-box;">
+                
+                <select id="ob-gender" style="margin-bottom: 8px; font-size: 0.9rem; width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-subtle); color: #FFF; border-radius: var(--radius-sm); box-sizing: border-box;">
+                    <option value="" disabled selected>Select Gender</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="other">Other</option>
+                </select>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <label class="text-sec" style="font-size: 0.8rem; font-weight: bold;">Body Metrics</label>
+                    <select id="ob-unit-toggle" style="background: rgba(255,255,255,0.1); border: 1px solid var(--accent-cyan); color: #FFF; border-radius: 4px; padding: 4px 8px; font-size: 0.8rem; cursor: pointer;">
+                        <option value="metric">Metric (cm/kg)</option>
+                        <option value="imperial">Imperial (ft/lbs)</option>
+                    </select>
+                </div>
+                
+                <!-- Metric Inputs -->
+                <div id="ob-metrics-metric">
+                    <input type="number" id="ob-height-cm" placeholder="Height (cm)" style="margin-bottom: 8px; font-size: 0.9rem; width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-subtle); color: #FFF; border-radius: var(--radius-sm); box-sizing: border-box;">
+                    <div style="display: flex; gap: var(--space-sm); width: 100%;">
+                        <input type="number" id="ob-curr-weight-kg" placeholder="Current Wt (kg)" style="margin-bottom: 8px; font-size: 0.9rem; flex: 1; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-subtle); color: #FFF; border-radius: var(--radius-sm); box-sizing: border-box;">
+                        <input type="number" id="ob-goal-weight-kg" placeholder="Target Wt (kg)" style="margin-bottom: 8px; font-size: 0.9rem; flex: 1; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-subtle); color: #FFF; border-radius: var(--radius-sm); box-sizing: border-box;">
+                    </div>
+                </div>
+
+                <!-- Imperial Inputs -->
+                <div id="ob-metrics-imperial" style="display: none;">
+                    <div style="display: flex; gap: var(--space-sm); width: 100%;">
+                        <input type="number" id="ob-height-ft" placeholder="Feet" style="margin-bottom: 8px; font-size: 0.9rem; flex: 1; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-subtle); color: #FFF; border-radius: var(--radius-sm); box-sizing: border-box;">
+                        <input type="number" id="ob-height-in" placeholder="Inches" style="margin-bottom: 8px; font-size: 0.9rem; flex: 1; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-subtle); color: #FFF; border-radius: var(--radius-sm); box-sizing: border-box;">
+                    </div>
+                    <div style="display: flex; gap: var(--space-sm); width: 100%;">
+                        <input type="number" id="ob-curr-weight-lbs" placeholder="Current Wt (lbs)" style="margin-bottom: 8px; font-size: 0.9rem; flex: 1; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-subtle); color: #FFF; border-radius: var(--radius-sm); box-sizing: border-box;">
+                        <input type="number" id="ob-goal-weight-lbs" placeholder="Target Wt (lbs)" style="margin-bottom: 8px; font-size: 0.9rem; flex: 1; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-subtle); color: #FFF; border-radius: var(--radius-sm); box-sizing: border-box;">
+                    </div>
+                </div>
+                
+                <p id="dynamic-bmi-display" class="text-sec" style="font-size: 0.85rem; margin-bottom: 8px; min-height: 20px;"></p>
+
+                <label class="text-sec" style="font-size: 0.75rem; margin-bottom: 2px; display: block;">Goal Target Date</label>
+                <input type="date" id="ob-goal-date" style="margin-bottom: 12px; font-size: 0.9rem; width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-subtle); color: #FFF; border-radius: var(--radius-sm); box-sizing: border-box;">
+
+                <label class="text-sec" style="font-size: 0.75rem; margin-bottom: 2px; display: block;">Target Frequency (Days/Week)</label>
+                <select id="ob-frequency" style="margin-bottom: 12px; font-size: 0.9rem; width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-subtle); color: #FFF; border-radius: var(--radius-sm); box-sizing: border-box;">
+                    <option value="1">1 Day</option>
+                    <option value="2">2 Days</option>
+                    <option value="3" selected>3 Days</option>
+                    <option value="4">4 Days</option>
+                    <option value="5">5 Days</option>
+                    <option value="6">6 Days</option>
+                    <option value="7">7 Days</option>
+                </select>
+
+                <label class="text-sec" style="font-size: 0.75rem; margin-bottom: 6px; display: block;">Preferred Schedule</label>
+                <div style="display: flex; justify-content: space-between; margin-bottom: var(--space-md);">
+                    <label style="display: flex; flex-direction: column; align-items: center; font-size: 0.75rem; color: var(--text-primary); cursor: pointer;"><input type="checkbox" name="ob-schedule" value="M" style="margin-bottom: 4px; width: auto;">M</label>
+                    <label style="display: flex; flex-direction: column; align-items: center; font-size: 0.75rem; color: var(--text-primary); cursor: pointer;"><input type="checkbox" name="ob-schedule" value="T" style="margin-bottom: 4px; width: auto;">T</label>
+                    <label style="display: flex; flex-direction: column; align-items: center; font-size: 0.75rem; color: var(--text-primary); cursor: pointer;"><input type="checkbox" name="ob-schedule" value="W" style="margin-bottom: 4px; width: auto;">W</label>
+                    <label style="display: flex; flex-direction: column; align-items: center; font-size: 0.75rem; color: var(--text-primary); cursor: pointer;"><input type="checkbox" name="ob-schedule" value="Th" style="margin-bottom: 4px; width: auto;">Th</label>
+                    <label style="display: flex; flex-direction: column; align-items: center; font-size: 0.75rem; color: var(--text-primary); cursor: pointer;"><input type="checkbox" name="ob-schedule" value="F" style="margin-bottom: 4px; width: auto;">F</label>
+                    <label style="display: flex; flex-direction: column; align-items: center; font-size: 0.75rem; color: var(--text-primary); cursor: pointer;"><input type="checkbox" name="ob-schedule" value="S" style="margin-bottom: 4px; width: auto;">S</label>
+                    <label style="display: flex; flex-direction: column; align-items: center; font-size: 0.75rem; color: var(--text-primary); cursor: pointer;"><input type="checkbox" name="ob-schedule" value="Su" style="margin-bottom: 4px; width: auto;">Su</label>
+                </div>
+
+                <div style="display: flex; gap: 12px;">
+                    <button id="ob-next-to-step-2" class="neon-btn" style="flex: 1;">Next ➔</button>
+                </div>
+            </div> <!-- End Step 1 -->
+
+            <!-- STEP 2: GYM LOCATION -->
+            <div id="ob-step-2" style="display: none;">
+                <p class="text-sec" style="font-size: 0.85rem; margin-bottom: 16px; text-align: center;">Where do you work out?</p>
+                <div class="ob-card-grid">
+                    <div class="ob-card" data-val="Commercial Gym" onclick="selectCard(this, 'gym-val')">
+                        <span class="ob-card-title">Commercial Gym</span>
+                        <span class="ob-card-sub">Planet Fitness, etc.</span>
+                    </div>
+                    <div class="ob-card" data-val="Warehouse Gym" onclick="selectCard(this, 'gym-val')">
+                        <span class="ob-card-title">Warehouse Gym</span>
+                        <span class="ob-card-sub">Racks, barbells</span>
+                    </div>
+                    <div class="ob-card" data-val="Local Gym" onclick="selectCard(this, 'gym-val')">
+                        <span class="ob-card-title">Local Gym</span>
+                        <span class="ob-card-sub">Cables, machines</span>
+                    </div>
+                    <div class="ob-card" data-val="Garage Gym" onclick="selectCard(this, 'gym-val')">
+                        <span class="ob-card-title">Garage Gym</span>
+                        <span class="ob-card-sub">Home setup</span>
+                    </div>
+                    <div class="ob-card" data-val="Home" onclick="selectCard(this, 'gym-val')">
+                        <span class="ob-card-title">Home</span>
+                        <span class="ob-card-sub">Bodyweight / basic</span>
+                    </div>
+                    <div class="ob-card" data-val="Build Your Own" onclick="selectCard(this, 'gym-val')">
+                        <span class="ob-card-title">Build Your Own</span>
+                        <span class="ob-card-sub">Custom Setup</span>
+                    </div>
+                </div>
+                <input type="hidden" id="ob-gym-type" value="">
+                
+                <div style="display: flex; gap: 12px;">
+                    <button id="ob-back-to-step-1" class="secondary-btn" style="flex: 1; padding: 12px; border-radius: 4px; background: rgba(255,255,255,0.05); color: #FFF; border: none; cursor: pointer;">← Back</button>
+                    <button id="ob-next-to-step-3" class="neon-btn" style="flex: 2;">Next ➔</button>
+                </div>
+            </div> <!-- End Step 2 -->
+
+            <!-- STEP 3: PRIMARY GOAL -->
+            <div id="ob-step-3" style="display: none;">
+                <p class="text-sec" style="font-size: 0.85rem; margin-bottom: 16px; text-align: center;">What is your primary focus?</p>
+                <div class="ob-card-grid full">
+                    <div class="ob-card" data-val="Hypertrophy" onclick="selectCard(this, 'goal-val')">
+                        <span class="ob-card-title">Muscle Hypertrophy</span>
+                        <span class="ob-card-sub">Size focus, moderate wt/reps</span>
+                    </div>
+                    <div class="ob-card" data-val="Strength" onclick="selectCard(this, 'goal-val')">
+                        <span class="ob-card-title">Muscle Strength</span>
+                        <span class="ob-card-sub">Max power, heavy wt/low reps</span>
+                    </div>
+                    <div class="ob-card" data-val="Fat Loss" onclick="selectCard(this, 'goal-val')">
+                        <span class="ob-card-title">Fat Loss & Toning</span>
+                        <span class="ob-card-sub">Focus on high volume, cardio</span>
+                    </div>
+                    <div class="ob-card" data-val="Both" onclick="selectCard(this, 'goal-val')">
+                        <span class="ob-card-title">Both</span>
+                        <span class="ob-card-sub">Balanced size and strength</span>
+                    </div>
+                </div>
+                <input type="hidden" id="ob-primary-goal" value="">
+
+                <div style="display: flex; gap: 12px;">
+                    <button id="ob-back-to-step-2" class="secondary-btn" style="flex: 1; padding: 12px; border-radius: 4px; background: rgba(255,255,255,0.05); color: #FFF; border: none; cursor: pointer;">← Back</button>
+                    <button id="ob-next-to-step-4" class="neon-btn" style="flex: 2;">Next ➔</button>
+                </div>
+            </div> <!-- End Step 3 -->
+
+            <!-- STEP 4: EQUIPMENT INVENTORY -->
+            <div id="ob-step-4" style="display: none;">
+                <p class="text-sec" style="font-size: 0.85rem; margin-bottom: 16px; text-align: center;">Select the gear you have access to. We pre-filled this based on your gym type.</p>
+                
+                <label class="text-sec" style="font-size: 0.75rem; margin-bottom: 6px; display: block; color: var(--accent-cyan);">Free Weights</label>
+                <div style="display: flex; flex-direction: column; margin-bottom: 12px;">
+                    <label class="ob-switch-row">
+                        <span>Dumbbells</span>
+                        <input type="checkbox" name="ob-equip" value="Dumbbells" class="ob-equip-cb">
+                    </label>
+                    <label class="ob-switch-row">
+                        <span>Kettlebells</span>
+                        <input type="checkbox" name="ob-equip" value="Kettlebells" class="ob-equip-cb">
+                    </label>
+                </div>
+
+                <label class="text-sec" style="font-size: 0.75rem; margin-bottom: 6px; display: block; color: var(--accent-cyan);">Bars</label>
+                <div style="display: flex; flex-direction: column; margin-bottom: 12px;">
+                    <label class="ob-switch-row">
+                        <span>Standard Barbell</span>
+                        <input type="checkbox" name="ob-equip" value="Barbell" class="ob-equip-cb">
+                    </label>
+                    <label class="ob-switch-row">
+                        <span>EZ Curl Bar</span>
+                        <input type="checkbox" name="ob-equip" value="EZ Bar" class="ob-equip-cb">
+                    </label>
+                    <label class="ob-switch-row">
+                        <span>Axle Bar</span>
+                        <input type="checkbox" name="ob-equip" value="Axle Bar" class="ob-equip-cb">
+                    </label>
+                </div>
+
+                <label class="text-sec" style="font-size: 0.75rem; margin-bottom: 6px; display: block; color: var(--accent-cyan);">Stations</label>
+                <div style="display: flex; flex-direction: column; margin-bottom: 24px;">
+                    <label class="ob-switch-row">
+                        <span>Flat/Adj Bench</span>
+                        <input type="checkbox" name="ob-equip" value="Bench" class="ob-equip-cb">
+                    </label>
+                    <label class="ob-switch-row">
+                        <span>Squat Rack / Half Rack</span>
+                        <input type="checkbox" name="ob-equip" value="Rack" class="ob-equip-cb">
+                    </label>
+                    <label class="ob-switch-row">
+                        <span>Cable Machine</span>
+                        <input type="checkbox" name="ob-equip" value="Cables" class="ob-equip-cb">
+                    </label>
+                </div>
+
+                <div style="display: flex; gap: 12px;">
+                    <button id="ob-back-to-step-3" class="secondary-btn" style="flex: 1; padding: 12px; border-radius: 4px; background: rgba(255,255,255,0.05); color: #FFF; border: none; cursor: pointer;">← Back</button>
+                    <button id="ob-next-to-step-5" class="neon-btn" style="flex: 2;">Next ➔</button>
+                </div>
+            </div> <!-- End Step 4 -->
+
+            <!-- STEP 5: EXPERIENCE BASELINE -->
+            <div id="ob-step-5" style="display: none;">
+                <p class="text-sec" style="font-size: 0.85rem; margin-bottom: 8px; text-align: center;">Establish your baseline.</p>
+                
+                <label class="text-sec" style="font-size: 0.75rem; margin-bottom: 2px; display: block;">Fitness Level</label>
+                <select id="ob-fitness-level" style="margin-bottom: 16px; font-size: 0.9rem; width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-subtle); color: #FFF; border-radius: var(--radius-sm); box-sizing: border-box;">
+                    <option value="Beginner" selected>Beginner</option>
+                    <option value="Intermediate">Intermediate</option>
+                    <option value="Advanced">Advanced</option>
+                </select>
+
+                <p class="text-sec" style="font-size: 0.75rem; margin-bottom: 12px; text-align: center; color: var(--accent-cyan);">Can you perform the following without pain?</p>
+
+                <div style="display: flex; flex-direction: column; margin-bottom: 24px;">
+                    <label class="ob-switch-row">
+                        <span id="label-pullups">At least 1 Pull-up</span>
+                        <input type="checkbox" id="ob-can-pullup">
+                    </label>
+                    <label class="ob-switch-row">
+                        <span>Dips</span>
+                        <input type="checkbox" id="ob-can-dip">
+                    </label>
+                    <label class="ob-switch-row">
+                        <span id="label-pushups">At least 1 Push-up</span>
+                        <input type="checkbox" id="ob-can-pushup">
+                    </label>
+                    <label class="ob-switch-row">
+                        <span>Barbell Bench Press</span>
+                        <input type="checkbox" id="ob-can-bbpress">
+                    </label>
+                </div>
+
+                <div style="display: flex; gap: 12px;">
+                    <button id="ob-back-to-step-4" class="secondary-btn" style="flex: 1; padding: 12px; border-radius: 4px; background: rgba(255,255,255,0.05); color: #FFF; border: none; cursor: pointer;">← Back</button>
+                    <button id="ob-submit-btn" class="neon-btn" style="flex: 2;">Lock In Profile 🔒</button>
+                </div>
+            </div> <!-- End Step 5 -->
+
+        </div>
+    </div>
+
+    <!-- Exponential Anti-Cheat Lockdown Screen -->
+    <div id="lockdown-screen" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #0F172A; z-index: 999999; flex-direction: column; justify-content: center; align-items: center; text-align: center; color: white;">
+        <h1 style="font-size: 4rem; margin-bottom: 1rem;">🚫</h1>
+        <h2 style="color: #FF5F1F; margin-bottom: 0.5rem; letter-spacing: 2px;">ANTI-CHEAT TIMEOUT</h2>
+        <p style="color: #A0A0A0; margin-bottom: 2rem; max-width: 300px;">Anomalous physical metrics detected. Your squad sync capabilities have been locked to preserve Arena integrity.</p>
+        <h2 id="lockdown-timer" style="font-size: 3.5rem; font-weight: 800; font-family: monospace; color: #FFFFFF; text-shadow: 0 0 15px rgba(255, 95, 31, 0.4);">00:00:00</h2>
+        <button id="btn-lockdown-logout" class="btn-secondary" style="margin-top: 3rem; background: transparent; color: #64748b; border: 1px solid rgba(100, 116, 139, 0.3); padding: 8px 24px; border-radius: 4px; font-size: 0.9rem; cursor: pointer; transition: all 0.2s ease;" onclick="app.lockdownLogout()">Log Out</button>
+    </div>
+
+    <!-- Onboarding Step 2: Anatomy -->
+    <div id="view-anatomy" class="hidden" style="padding-top: 60px; min-height: 100vh; background: var(--bg-midnight); display: flex; flex-direction: column; align-items: center; padding: 20px;">
+        <h2 style="margin-bottom: var(--space-md); font-size: 1.5rem; text-align: center; margin-top: 20px;">Target Muscle Groups</h2>
+        <p class="text-sec" style="margin-bottom: var(--space-lg); text-align: center; max-width: 300px; font-size: 0.9rem;">Tap the groups you want to prioritize in your training journey.</p        <!-- View Toggle (Hidden for singular raster image) -->
+        <div style="display: none;"></div>
+
+        <div style="position: relative; width: 100%; max-width: 350px; aspect-ratio: 1/1; margin: 0 auto; margin-bottom: var(--space-xl);">
+            <!-- High-Fidelity Image Mapped Anatomy -->
+            <img src="assets/tpose.png" alt="Anatomy Reference" style="width: 100%; height: 100%; object-fit: contain; border-radius: 12px; filter: drop-shadow(0 0 15px rgba(0,0,0,0.8));">
+            <svg viewBox="0 0 100 100" preserveAspectRatio="none" class="anatomy-svg" style="position: absolute; top:0; left:0; width:100%; height:100%; z-index:10;">
+                
+                <!-- Pectorals (Chest) -->
+                <path id="svg-front-chest" class="muscle-group" d="M 45 27 C 47 25, 53 25, 55 27 C 53 29, 47 29, 45 27 Z" fill="transparent" stroke="none" style="cursor: pointer;" onclick="app.toggleMuscle('chest', document.getElementById('btn-chest'))"/>
+                
+                <!-- Deltoids (Shoulders) -->
+                <g id="svg-front-shoulder">
+                    <path class="muscle-group" d="M 37 20 C 39 20, 40 23, 39 25 C 37 25, 36 23, 37 20 Z" fill="transparent" stroke="none" style="cursor: pointer;" onclick="app.toggleMuscle('shoulder', document.getElementById('btn-shoulder'))"/>
+                    <path class="muscle-group" d="M 63 20 C 61 20, 60 23, 61 25 C 63 25, 64 23, 63 20 Z" fill="transparent" stroke="none" style="cursor: pointer;" onclick="app.toggleMuscle('shoulder', document.getElementById('btn-shoulder'))"/>
+                </g>
+                
+                <!-- Rectus Abdominis (Abs) -->
+                <path id="svg-front-abs" class="muscle-group" d="M 47 38 C 50 37, 53 38, 52 45 C 49 46, 47 45, 47 38 Z" fill="transparent" stroke="none" style="cursor: pointer;" onclick="app.toggleMuscle('abs', document.getElementById('btn-abs'))"/>
+                
+                <!-- Biceps / Forearms (Arms Targeted to the Purple Glow) -->
+                <g id="svg-front-arms">
+                    <path class="muscle-group" d="M 15 25 C 20 23, 25 23, 28 25 C 25 27, 20 27, 15 25 Z" fill="transparent" stroke="none" style="cursor: pointer;" onclick="app.toggleMuscle('arms', document.getElementById('btn-arms'))"/>
+                    <path class="muscle-group" d="M 85 25 C 80 23, 75 23, 72 25 C 75 27, 80 27, 85 25 Z" fill="transparent" stroke="none" style="cursor: pointer;" onclick="app.toggleMuscle('arms', document.getElementById('btn-arms'))"/>
+                </g>
+                
+                <!-- Quadriceps / Calves (Legs Targeted to the Purple Glow) -->
+                <g id="svg-front-legs">
+                    <path class="muscle-group" d="M 45 60 C 47 60, 48 75, 46 85 C 44 75, 43 60, 45 60 Z" fill="transparent" stroke="none" style="cursor: pointer;" onclick="app.toggleMuscle('legs', document.getElementById('btn-legs'))"/>
+                    <path class="muscle-group" d="M 55 60 C 53 60, 52 75, 54 85 C 56 75, 57 60, 55 60 Z" fill="transparent" stroke="none" style="cursor: pointer;" onclick="app.toggleMuscle('legs', document.getElementById('btn-legs'))"/>
+                </g>
+            </svg>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; max-width: 320px; margin-bottom: var(--space-xl);">
+            <button id="btn-chest" class="secondary-btn muscle-toggle-btn" onclick="app.toggleMuscle('chest', this)" style="border-color: rgba(255,255,255,0.2); color: var(--text-silver); padding: 8px;">Chest</button>
+            <button id="btn-back" class="secondary-btn muscle-toggle-btn" onclick="app.toggleMuscle('back', this)" style="border-color: rgba(255,255,255,0.2); color: var(--text-silver); padding: 8px;">Back</button>
+            <button id="btn-shoulder" class="secondary-btn muscle-toggle-btn" onclick="app.toggleMuscle('shoulder', this)" style="border-color: rgba(255,255,255,0.2); color: var(--text-silver); padding: 8px;">Shoulders</button>
+            <button id="btn-abs" class="secondary-btn muscle-toggle-btn" onclick="app.toggleMuscle('abs', this)" style="border-color: rgba(255,255,255,0.2); color: var(--text-silver); padding: 8px;">Abs</button>
+            <button id="btn-arms" class="secondary-btn muscle-toggle-btn" onclick="app.toggleMuscle('arms', this)" style="border-color: rgba(255,255,255,0.2); color: var(--text-silver); padding: 8px;">Arms</button>
+            <button id="btn-legs" class="secondary-btn muscle-toggle-btn" onclick="app.toggleMuscle('legs', this)" style="border-color: rgba(255,255,255,0.2); color: var(--text-silver); padding: 8px;">Legs</button>
+        </div>
+
+        <button class="neon-btn" onclick="app.completeAnatomy()" style="width: 100%; max-width: 300px;">
+            Start My Journey
+        </button>
+    </div>
+
+    <!-- Navigation Bar (Hidden on Auth/Onboarding) -->
+    <nav id="bottom-nav" class="glass-nav hidden">
+        <button id="nav-home" class="nav-item active" data-view="dashboard">
+            <span class="icon">🏠</span>
+            <span class="label">Home</span>
+        </button>
+        <button id="nav-vault" class="nav-item" data-view="vault">
+            <span class="icon">📚</span>
+            <span class="label">Vault</span>
+        </button>
+        <button id="nav-squad" class="nav-item" data-view="folders">
+            <span class="icon">📁</span>
+            <span class="label">Squad</span>
+        </button>
+        <button id="nav-arena" class="nav-item" data-view="arena">
+            <span class="icon">🏆</span>
+            <span class="label">Arena</span>
+        </button>
+        <button id="nav-history" class="nav-item" data-view="history">
+            <span class="icon">📅</span>
+            <span class="label">History</span>
+        </button>
+        <button id="nav-profile" class="nav-item" data-view="profile">
+            <span class="icon">⚙️</span>
+            <span class="label">Profile</span>
+        </button>
+    </nav>
+
+    <!-- Global Rest Timer Overlay -->
+    <div id="rest-timer-overlay" class="hidden glass-panel timer-overlay">
+        <div class="timer-circle">
+            <svg viewBox="0 0 100 100">
+                <circle class="timer-bg" cx="50" cy="50" r="45"></circle>
+                <circle id="timer-progress-ring" class="timer-progress" cx="50" cy="50" r="45"></circle>
+            </svg>
+            <div class="time-display" id="timer-display">01:30</div>
+        </div>
+        <button id="skip-timer-btn" class="neon-btn timer-btn">Skip Rest</button>
+    </div>
+
+    <!-- Active Logging Modal -->
+    <div id="modal-exercise-detail" class="hidden" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(5,7,10,0.95); backdrop-filter: blur(10px); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 20px;">
+        <div class="glass-panel" style="width: 100%; max-width: 500px; padding: 24px; display: flex; flex-direction: column;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+                <div>
+                    <h2 id="modal-ex-title" class="text-highlight" style="font-size: 1.8rem; margin-bottom: 4px;">Exercise Name</h2>
+                    <p id="modal-ex-subtitle" class="text-sec" style="font-size: 0.9rem;">Last performed on: ...</p>
+                </div>
+                <button style="background: none; border: none; color: #A0A0A0; font-size: 1.5rem; cursor: pointer;" onclick="app.closeExerciseModal()">✕</button>
+            </div>
+
+            <div style="display: flex; gap: 16px; margin-bottom: 16px;">
+                <div style="flex: 1;">
+                    <label class="text-sec" style="font-size: 0.9rem; margin-bottom: 8px; display: block;">Weight (kg)</label>
+                    <input type="number" id="modal-log-weight" placeholder="0" style="font-size: 1.5rem; height: 50px; text-align: center; font-weight: bold; background: #05070A; color: var(--text-primary); border: 1px solid rgba(255,255,255,0.1); border-radius: var(--radius-md);">
+                </div>
+                <div style="flex: 1;">
+                    <label class="text-sec" style="font-size: 0.9rem; margin-bottom: 8px; display: block;">Reps</label>
+                    <input type="number" id="modal-log-reps" placeholder="0" style="font-size: 1.5rem; height: 50px; text-align: center; font-weight: bold; background: #05070A; color: var(--text-primary); border: 1px solid rgba(255,255,255,0.1); border-radius: var(--radius-md);">
+                </div>
+            </div>
+
+            <button class="neon-btn" style="margin-bottom: 24px;" onclick="app.addTempSet()">+ Add Set</button>
+
+            <div id="modal-temp-sets" style="margin-bottom: 24px; max-height: 150px; overflow-y: auto;">
+                <!-- Temporary Sets render here -->
+            </div>
+
+            <div style="display: flex; gap: 12px; margin-bottom: 12px;">
+                <button class="secondary-btn" style="flex: 1; border-color: var(--accent-cyan); color: var(--accent-cyan); font-size: 0.85rem;" onclick="app.triggerAnalytics('volume')">Volume Analytics</button>
+                <button class="secondary-btn" style="flex: 1; border-color: #FF5F1F; color: #FF5F1F; font-size: 0.85rem;" onclick="app.triggerAnalytics('1rm')">1RM Analytics</button>
+            </div>
+            
+            <button class="neon-btn" style="background: var(--accent-success); box-shadow: 0 4px 15px rgba(46, 204, 113, 0.4);" onclick="app.finishExerciseDetails()">Submit to Workout</button>
+        </div>
+    </div>
+
+    <!-- Analytics Modal -->
+    <div id="modal-analytics" class="hidden" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(5,7,10,0.95); backdrop-filter: blur(10px); z-index: 2500; display: flex; align-items: center; justify-content: center; padding: 20px;">
+        <div class="glass-panel" style="width: 100%; max-width: 600px; padding: 24px; height: 400px; display: flex; flex-direction: column;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <h3 id="analytics-title" class="text-highlight">Analytics</h3>
+                <button style="background: none; border: none; color: #A0A0A0; font-size: 1.5rem; cursor: pointer;" onclick="document.getElementById('modal-analytics').classList.add('hidden')">✕</button>
+            </div>
+            <div style="flex: 1; position: relative;">
+                <canvas id="analyticsChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Post Modal -->
+    <div id="new-post-modal" class="hidden" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(5,7,10,0.95); backdrop-filter: blur(10px); z-index: 3000; display: flex; align-items: center; justify-content: center; padding: 20px;">
+        <div class="glass-panel" style="width: 100%; max-width: 500px; padding: 24px; display: flex; flex-direction: column;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 class="text-highlight">Create Post</h3>
+                <button id="close-post-modal" style="background: none; border: none; color: #A0A0A0; font-size: 1.5rem; cursor: pointer;">✕</button>
+            </div>
+            
+            <label class="text-sec" style="font-size: 0.9rem; margin-bottom: 8px;">Upload Image/Video</label>
+            <input type="file" id="FINAL_UI_IMAGE_INPUT" accept="image/*" style="margin-bottom: 16px; color: #FFF; background: rgba(255,255,255,0.05); padding: 12px; border-radius: var(--radius-sm); border: 1px dashed var(--border-subtle); width: 100%;">
+            
+            <label class="text-sec" style="font-size: 0.9rem; margin-bottom: 8px;">Caption</label>
+            <textarea id="FINAL_UI_CAPTION_INPUT" placeholder="Write a caption..." rows="3" style="margin-bottom: 16px; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-subtle); color: #FFF; border-radius: var(--radius-sm); width: 100%; font-family: 'Inter', sans-serif; resize: none;"></textarea>
+            
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 24px; background: rgba(0, 209, 255, 0.05); padding: 12px; border-radius: var(--radius-sm); border: 1px solid rgba(0,209,255,0.2);">
+                <input type="checkbox" id="post-close-friends" style="width: 20px; height: 20px; accent-color: var(--accent-cyan);">
+                <label for="post-close-friends" style="color: #00D1FF; font-weight: 600; font-size: 0.9rem;">⭐ Close Friends / Squad Only</label>
+            </div>
+            
+            <button id="FINAL_UI_SUBMIT_BTN" class="neon-btn" style="width: 100%; display: flex; justify-content: center; align-items: center; gap: 8px;">
+                <span>Post to Feed</span>
+            </button>
+        </div>
+    </div>
+
+
+
+    <!-- Routine Creator Modal -->
+    <div id="routine-creator-modal" class="hidden" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(5,7,10,0.95); backdrop-filter: blur(10px); z-index: 4500; display: flex; align-items: center; justify-content: center; padding: 20px;">
+        <div class="glass-panel" style="width: 100%; max-width: 500px; padding: 24px; display: flex; flex-direction: column; max-height: 90vh;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 class="text-highlight">Create Custom Routine</h3>
+                <button style="background: none; border: none; color: #A0A0A0; font-size: 1.5rem; cursor: pointer;" onclick="document.getElementById('routine-creator-modal').classList.add('hidden')">✕</button>
+            </div>
+            
+            <label class="text-sec" style="font-size: 0.9rem; margin-bottom: 8px;">Routine Name</label>
+            <input type="text" id="routine-name-input" placeholder="e.g. Full Body Alpha" style="margin-bottom: 16px; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-subtle); color: #FFF; border-radius: var(--radius-sm); width: 100%; font-family: 'Inter', sans-serif;">
+            
+            <label class="text-sec" style="font-size: 0.9rem; margin-bottom: 8px;">Select Exercises</label>
+            <div id="routine-exercises-grid" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; background: rgba(0,0,0,0.2); padding: 12px; border-radius: var(--radius-sm);">
+                <label style="display: flex; align-items: center; gap: 10px; color: #FFF; padding: 8px; background: rgba(255,255,255,0.05); border-radius: 4px; cursor: pointer;">
+                    <input type="checkbox" value="Bench Press" class="routine-exercise-cb" style="width: 18px; height: 18px; accent-color: var(--accent-cyan);"> Bench Press
+                </label>
+                <label style="display: flex; align-items: center; gap: 10px; color: #FFF; padding: 8px; background: rgba(255,255,255,0.05); border-radius: 4px; cursor: pointer;">
+                    <input type="checkbox" value="Squat" class="routine-exercise-cb" style="width: 18px; height: 18px; accent-color: var(--accent-cyan);"> Squat
+                </label>
+                <label style="display: flex; align-items: center; gap: 10px; color: #FFF; padding: 8px; background: rgba(255,255,255,0.05); border-radius: 4px; cursor: pointer;">
+                    <input type="checkbox" value="Deadlift" class="routine-exercise-cb" style="width: 18px; height: 18px; accent-color: var(--accent-cyan);"> Deadlift
+                </label>
+                <label style="display: flex; align-items: center; gap: 10px; color: #FFF; padding: 8px; background: rgba(255,255,255,0.05); border-radius: 4px; cursor: pointer;">
+                    <input type="checkbox" value="Overhead Press" class="routine-exercise-cb" style="width: 18px; height: 18px; accent-color: var(--accent-cyan);"> Overhead Press
+                </label>
+                <label style="display: flex; align-items: center; gap: 10px; color: #FFF; padding: 8px; background: rgba(255,255,255,0.05); border-radius: 4px; cursor: pointer;">
+                    <input type="checkbox" value="Barbell Row" class="routine-exercise-cb" style="width: 18px; height: 18px; accent-color: var(--accent-cyan);"> Barbell Row
+                </label>
+                <label style="display: flex; align-items: center; gap: 10px; color: #FFF; padding: 8px; background: rgba(255,255,255,0.05); border-radius: 4px; cursor: pointer;">
+                    <input type="checkbox" value="Pull-Up" class="routine-exercise-cb" style="width: 18px; height: 18px; accent-color: var(--accent-cyan);"> Pull-Up
+                </label>
+                <label style="display: flex; align-items: center; gap: 10px; color: #FFF; padding: 8px; background: rgba(255,255,255,0.05); border-radius: 4px; cursor: pointer;">
+                    <input type="checkbox" value="Dumbbell Curl" class="routine-exercise-cb" style="width: 18px; height: 18px; accent-color: var(--accent-cyan);"> Dumbbell Curl
+                </label>
+                <label style="display: flex; align-items: center; gap: 10px; color: #FFF; padding: 8px; background: rgba(255,255,255,0.05); border-radius: 4px; cursor: pointer;">
+                    <input type="checkbox" value="Tricep Extension" class="routine-exercise-cb" style="width: 18px; height: 18px; accent-color: var(--accent-cyan);"> Tricep Extension
+                </label>
+            </div>
+            
+            <button class="neon-btn" style="width: 100%; background: var(--accent-success); border-color: var(--accent-success); box-shadow: 0 4px 15px rgba(46, 204, 113, 0.4);" onclick="app.submitRoutineCreator()">
+                <span>Save Routine</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Comments Modal -->
+    <div id="comments-modal" class="hidden" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(5,7,10,0.95); backdrop-filter: blur(10px); z-index: 5500; display: flex; align-items: flex-end; justify-content: center;">
+        <div class="glass-panel" style="width: 100%; max-width: 500px; padding: 24px; display: flex; flex-direction: column; border-bottom-left-radius: 0; border-bottom-right-radius: 0; max-height: 80vh;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <h3 class="text-highlight">Comments</h3>
+                <button style="background: none; border: none; color: #A0A0A0; font-size: 1.5rem; cursor: pointer;" onclick="document.getElementById('comments-modal').classList.add('hidden')">✕</button>
+            </div>
+            
+            <div id="comments-list" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; min-height: 150px;">
+                <!-- Output generated comments here -->
+            </div>
+            
+            <div style="display: flex; gap: 8px;">
+                <input type="text" id="new-comment-input" maxlength="250" placeholder="Add a comment..."/>
+                <button class="neon-btn" style="background: var(--accent-cyan); color: #05070A; border: none; font-weight: bold; padding: 0 20px;" id="submit-comment-btn" onclick="UI.postComment()">Post</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Coach Consultation Modal -->
+    <div id="coach-consultation-modal" class="hidden" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(5, 7, 10, 0.9); backdrop-filter: blur(8px); z-index: 5000; display: flex; align-items: center; justify-content: center; padding: 20px;">
+        <div class="glass-panel" style="width: 100%; max-width: 450px; background: #161B22; border: 1px solid rgba(0, 209, 255, 0.3); box-shadow: 0 0 30px rgba(0, 209, 255, 0.1); border-radius: 12px; padding: 0;">
+            <div style="padding: 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="color: var(--accent-cyan); margin: 0; font-size: 1.2rem;">⚡ Auto-Coach Consultation</h3>
+                <button style="background: none; border: none; color: #A0A0A0; font-size: 1.2rem; cursor: pointer;" onclick="app.closeCoachConsultation()">✕</button>
+            </div>
+            
+            <div style="padding: 24px; display: flex; flex-direction: column; gap: 20px;">
+                <!-- Goal -->
+                <div>
+                    <label style="color: #A0A0A0; font-size: 0.85rem; margin-bottom: 6px; display: block;">Primary Goal</label>
+                    <select id="coach-param-goal" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #fff; font-size: 1rem;">
+                        <option value="Lose Weight/Fat">Lose Weight/Fat</option>
+                        <option value="Build Muscle (Hypertrophy)" selected>Build Muscle (Hypertrophy)</option>
+                        <option value="Maximize Strength">Maximize Strength</option>
+                        <option value="General Fitness">General Fitness</option>
+                    </select>
+                </div>
+
+                <!-- Equipment -->
+                <div>
+                    <label style="color: #A0A0A0; font-size: 0.85rem; margin-bottom: 6px; display: block;">Available Equipment</label>
+                    <select id="coach-param-equipment" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #fff; font-size: 1rem;">
+                        <option value="Full Commercial Gym" selected>Full Commercial Gym</option>
+                        <option value="Dumbbells & Benches Only">Dumbbells & Benches Only</option>
+                        <option value="Bodyweight Only">Bodyweight Only</option>
+                    </select>
+                </div>
+
+                <!-- Frequency -->
+                <div>
+                    <label style="color: #A0A0A0; font-size: 0.85rem; margin-bottom: 6px; display: block;">Training Frequency</label>
+                    <select id="coach-param-frequency" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #fff; font-size: 1rem;">
+                        <option value="3">3 Days / Week</option>
+                        <option value="4">4 Days / Week</option>
+                        <option value="5">5 Days / Week</option>
+                    </select>
+                </div>
+
+                <!-- Experience -->
+                <div>
+                    <label style="color: #A0A0A0; font-size: 0.85rem; margin-bottom: 6px; display: block;">Experience Level</label>
+                    <select id="coach-param-experience" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #fff; font-size: 1rem;">
+                        <option value="Beginner">Beginner</option>
+                        <option value="Intermediate" selected>Intermediate</option>
+                        <option value="Advanced">Advanced</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="padding: 20px; border-top: 1px solid rgba(255, 255, 255, 0.05); display: flex; gap: 12px;">
+                <button class="secondary-btn" style="flex: 1; padding: 14px;" onclick="app.closeCoachConsultation()">Cancel</button>
+                <button class="neon-btn" style="flex: 2; padding: 14px; font-weight: bold;" onclick="app.submitCoachConsultation()">Analyze & Generate ⚡</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Interactive Tour Overlay -->
+    <div id="tour-overlay" class="hidden" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.85); z-index: 9000; pointer-events: none; transition: background 0.3s ease;">
+        <div id="tour-tooltip" style="position: absolute; background: var(--glass-bg); padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--accent-cyan); box-shadow: 0 0 30px rgba(0, 209, 255, 0.3); color: #fff; max-width: 300px; display: flex; flex-direction: column; gap: 12px; pointer-events: auto; transition: top 0.4s ease, left 0.4s ease, opacity 0.3s ease;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: -4px;">
+                <span style="color: var(--accent-cyan); font-weight: bold; font-size: 0.8rem; letter-spacing: 1px; text-transform: uppercase;">Arena Guide</span>
+                <button id="tour-skip-btn" style="background: none; border: none; color: #A0A0A0; font-size: 0.8rem; cursor: pointer; text-decoration: underline;">Skip</button>
+            </div>
+            <div id="tour-text" style="font-size: 0.95rem; font-weight: 500; line-height: 1.5;"></div>
+            <div style="display: flex; justify-content: flex-end;">
+                <button id="tour-next-btn" class="neon-btn" style="padding: 6px 16px; font-size: 0.8rem;">Next</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MVC Scripts -->
+    <script src="js/exercise_db.js"></script>
+    <script src="js/Database_Logic.js"></script>
+    <script src="js/Program_Generator.js"></script>
+    <script src="js/UI_Components.js"></script>
+    <script src="js/Arena_Logic.js"></script>
+    <script src="js/Leaderboard_Service.js"></script>
+    <script src="js/Onboarding_Tour.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
