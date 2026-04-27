@@ -1,5 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
 import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
+import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyBu5XnvFm3dBXcJqeG6cd8QHmFx-RQq1sU",
@@ -14,7 +15,52 @@ const firebaseConfig = {
 const appFirebase = initializeApp(firebaseConfig);
 const auth = getAuth(appFirebase);
 const provider = new GoogleAuthProvider();
+const db = getFirestore(appFirebase);
 window.auth = auth;
+
+window.saveWorkoutToCloud = async function(workoutData) {
+    if (!auth.currentUser) {
+        console.warn("No user logged in, cannot sync workout.");
+        return;
+    }
+    try {
+        const userWorkoutsRef = collection(db, 'users', auth.currentUser.uid, 'workouts');
+        await addDoc(userWorkoutsRef, workoutData);
+        console.log("✅ Workout synced to Firestore.");
+    } catch (e) {
+        console.error("❌ Failed to sync workout to cloud:", e);
+    }
+};
+
+window.fetchUserAnalytics = async function() {
+    let labels = [];
+    let data = [];
+    
+    try {
+        if (!auth.currentUser) throw new Error("No user logged in");
+        const userWorkoutsRef = collection(db, 'users', auth.currentUser.uid, 'workouts');
+        const q = query(userWorkoutsRef, orderBy('date', 'asc'), limit(10));
+        const querySnapshot = await getDocs(q);
+        
+        querySnapshot.forEach((doc) => {
+            const w = doc.data();
+            labels.push(w.date.split('T')[0]);
+            data.push(w.volume || 0);
+        });
+        
+        if (labels.length === 0) throw new Error("No data found in Firebase");
+        return { labels, data };
+    } catch (e) {
+        console.warn("Firebase fetch failed or empty, falling back to localStorage", e);
+        const history = JSON.parse(localStorage.getItem('workout_history') || '[]');
+        const last10 = history.slice(-10);
+        last10.forEach(w => {
+            labels.push(w.date ? w.date.split('T')[0] : 'Unknown');
+            data.push(w.total_volume || w.volume || 0);
+        });
+        return { labels, data };
+    }
+};
 
 // Expose signOut globally for app.js to use
 window.signOutUser = () => {

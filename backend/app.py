@@ -17,7 +17,8 @@ app = Flask(__name__)
 # Enable CORS for all routes so the mobile/Capacitor frontend can communicate without being blocked
 CORS(app)
 
-DB_PATH = 'squads.db'
+base_dir = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(base_dir, 'squads.db')
 
 # Cloudinary CDN Configuration
 cloudinary.config(

@@ -635,6 +635,15 @@
         </div>
     </div>
 
+    <!-- Global Workout Context (Overlay & Mini-Player) -->
+    <div id="global-workout-overlay" class="hidden" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 8500; background: var(--bg-midnight); overflow-y: auto;">
+        <!-- Workout UI dynamically injected here -->
+    </div>
+    
+    <div id="workout-mini-player" class="hidden" style="position: fixed; bottom: 70px; left: 10px; right: 10px; background: rgba(0, 209, 255, 0.95); backdrop-filter: blur(5px); color: #000; padding: 15px; border-radius: 12px; z-index: 8400; text-align: center; font-weight: bold; cursor: pointer; box-shadow: 0 4px 20px rgba(0,209,255,0.4);" onclick="UI.openWorkoutOverlay()">
+        ⚡ Active Session in Progress - Tap to Resume
+    </div>
+
     <!-- MVC Scripts -->
     <script src="js/exercise_db.js"></script>
     <script src="js/Database_Logic.js"></script>

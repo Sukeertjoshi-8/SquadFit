@@ -1,5 +1,30 @@
 // UI_Components.js - Centralized logic for UI rendering
 // UI_Components.js - Handles DOM rendering and events
+// UI_Components.js - Handles DOM rendering and events
+
+window.minimizeWorkout = function() {
+    const overlay = document.getElementById('global-workout-overlay');
+    const mini = document.getElementById('workout-mini-player');
+    if (overlay) overlay.style.display = 'none';
+    if (mini) mini.style.display = 'block';
+};
+
+window.openWorkoutOverlay = function() {
+    const overlay = document.getElementById('global-workout-overlay');
+    const mini = document.getElementById('workout-mini-player');
+    if (overlay) {
+        overlay.innerHTML = UI.templates.workoutOverlay();
+        overlay.style.display = 'block';
+    }
+    if (mini) mini.style.display = 'none';
+    if (typeof Arena !== 'undefined' && typeof Arena.init === 'function') {
+        Arena.init();
+    }
+};
+
+window.startGlobalWorkout = window.startGlobalWorkout || function(id) {
+    console.error("Fallback: startGlobalWorkout undefined when trying to start", id);
+};
 
 const UI = {
     container: document.getElementById('app-container'),
@@ -233,99 +258,160 @@ const UI = {
             return;
         }
         
-        this.container.innerHTML = ``;
-        window.scrollTo(0, 0);
-        
-        if (viewName === 'auth') {
-            this.nav.classList.add('hidden');
-            this.container.innerHTML = this.templates.auth();
-        } 
-        else if (viewName === 'activeWorkout') {
-            this.nav.classList.add('hidden');
-            this.container.innerHTML = this.templates.activeWorkout(window.currentExerciseId);
-            if (window.state && window.state.currentSession) {
-                this.updateHistoryTable(window.currentExerciseId);
-            }
-        } 
-        else if (viewName === 'exerciseDetail') {
-            this.nav.classList.add('hidden');
-            const footerHide = document.querySelector('.arena-footer-container'); 
-            if(footerHide) footerHide.style.display = 'none';
-            this.container.innerHTML = this.templates.exerciseDetail(param || window.currentExerciseId);
-            this.container.innerHTML += `
-                <div style="padding: 16px; margin-bottom: 80px; text-align: center;">
-                    <button class="primary-btn" style="width: 100%; padding: 16px; font-size: 1.1rem;" onclick="window.startForcedSession('${param || window.currentExerciseId}')">
-                        🚀 START WORKOUT
-                    </button>
-                </div>`;
-        } 
-        else if (viewName === 'dashboard') {
-            this.nav.classList.remove('hidden');
-            const savedDraft = localStorage.getItem('squadFit_draft');
-            let draftBannerHTML = ``;
-            if (savedDraft) {
-                draftBannerHTML = `
-                    <div id="draft-recovery-banner" style="background: rgba(255, 95, 31, 0.2); border: 1px solid #ff5f1f; padding: 12px; border-radius: 8px; margin-bottom: 15px;">
-                        <span style="color: #FFF; font-weight: bold; display: block; margin-bottom: 8px;">Resume active session?</span>
-                        <div style="display: flex; gap: 8px;">
-                            <button class="neon-btn" style="flex: 1; padding: 8px;" onclick="app.resumeDraft()">Continue</button>
-                            <button class="secondary-btn" style="flex: 1; padding: 8px;" onclick="app.discardDraft()">Discard</button>
-                        </div>
-                    </div>`;
-            }
-            this.container.innerHTML = draftBannerHTML + this.templates.dashboard();
-        } 
-        else if (viewName === 'onboarding') {
-            this.nav.classList.add('hidden');
-            this.container.innerHTML = this.templates.onboarding();
-            setTimeout(() => this.bindBMILogic(), 100);
-        } 
-        else if (viewName === 'vault') {
-            this.nav.classList.remove('hidden');
-            this.container.innerHTML = this.templates.vault();
-            if (window.state && window.state.vaultTab === 'routines') {
-                if (window.loadVaultTemplates) window.loadVaultTemplates();
-            }
-        } 
-        else if (viewName === 'log') {
-            this.nav.classList.add('hidden');
-            this.container.innerHTML = this.templates.logSession(window.currentExerciseId);
-        } 
-        else if (viewName === 'folders') {
-            this.nav.classList.remove('hidden');
-            this.container.innerHTML = this.templates.folders();
-        } 
-        else if (viewName === 'arena') {
-            this.nav.classList.remove('hidden');
-            const footerShow = document.querySelector('.arena-footer-container'); 
-            if(footerShow) footerShow.style.display = 'flex';
-            this.container.innerHTML = this.templates.arena();
-            if (typeof Arena !== 'undefined' && typeof Arena.init === 'function') Arena.init();
+        try {
+            this.container.innerHTML = ``;
+            window.scrollTo(0, 0);
             
-            // Trigger Arena Tour
-            if (localStorage.getItem('arena_tour_completed') !== 'true' && typeof window.startArenaTour === 'function') {
-                setTimeout(() => window.startArenaTour(), 500);
+            if (viewName === 'auth') {
+                this.nav.classList.add('hidden');
+                this.container.innerHTML = this.templates.auth();
+            } 
+            else if (viewName === 'activeWorkout') {
+                this.nav.classList.add('hidden');
+                this.container.innerHTML = this.templates.activeWorkout(window.currentExerciseId);
+                if (window.state && window.state.currentSession) {
+                    this.updateHistoryTable(window.currentExerciseId);
+                }
+            } 
+            else if (viewName === 'exerciseDetail') {
+                this.nav.classList.add('hidden');
+                const footerHide = document.querySelector('.arena-footer-container'); 
+                if(footerHide) footerHide.style.display = 'none';
+                this.container.innerHTML = this.templates.exerciseDetail(param || window.currentExerciseId);
+            } 
+            else if (viewName === 'dashboard') {
+                document.querySelectorAll('.arena-footer-container').forEach(el => el.style.setProperty('display', 'none', 'important'));
+                this.nav.classList.remove('hidden');
+                const savedDraft = localStorage.getItem('squadFit_draft');
+                let draftBannerHTML = ``;
+                if (savedDraft) {
+                    draftBannerHTML = `
+                        <div id="draft-recovery-banner" style="background: rgba(255, 95, 31, 0.2); border: 1px solid #ff5f1f; padding: 12px; border-radius: 8px; margin-bottom: 15px;">
+                            <span style="color: #FFF; font-weight: bold; display: block; margin-bottom: 8px;">Resume active session?</span>
+                            <div style="display: flex; gap: 8px;">
+                                <button class="neon-btn" style="flex: 1; padding: 8px;" onclick="app.resumeDraft()">Continue</button>
+                                <button class="secondary-btn" style="flex: 1; padding: 8px;" onclick="app.discardDraft()">Discard</button>
+                            </div>
+                        </div>`;
+                }
+                const streakVal = parseInt(localStorage.getItem('currentStreak')) || 0;
+                this.container.innerHTML = draftBannerHTML + this.templates.dashboard(streakVal);
+                
+                setTimeout(() => { if (typeof window.syncGoalCalendar === 'function') window.syncGoalCalendar(); }, 50);
+                
+                // Hydration Logic bindings
+                setTimeout(() => {
+                    const hydroValEl = document.getElementById('hydro-val');
+                    const hydroFillEl = document.getElementById('hydro-fill');
+                    const waterGoal = 3000;
+                    let currentWater = parseInt(localStorage.getItem('hydrationToday')) || 0;
+                    
+                    const renderWater = () => {
+                        if (hydroValEl) hydroValEl.innerText = `${currentWater}ml / ${waterGoal}ml`;
+                        if (hydroFillEl) hydroFillEl.style.width = `${Math.min((currentWater / waterGoal) * 100, 100)}%`;
+                    };
+                    
+                    renderWater();
+                    
+                    document.querySelectorAll('.hydro-quick-btn').forEach(btn => {
+                        btn.addEventListener('click', (e) => {
+                            const amt = parseInt(e.currentTarget.dataset.amount);
+                            const prevWater = currentWater;
+                            currentWater += amt;
+                            if (currentWater < 0) currentWater = 0;
+                            localStorage.setItem('hydrationToday', currentWater);
+                            renderWater();
+                            
+                            if (currentWater >= waterGoal && prevWater < waterGoal) {
+                                if (typeof app !== 'undefined' && typeof app.fireConfetti === 'function') {
+                                    app.fireConfetti();
+                                } else {
+                                    alert("CONGRATS! Water goal reached!");
+                                }
+                            }
+                        });
+                    });
+                }, 50);
+            } 
+            else if (viewName === 'onboarding') {
+                this.nav.classList.add('hidden');
+                this.container.innerHTML = this.templates.onboarding();
+                setTimeout(() => this.bindBMILogic(), 100);
+            } 
+            else if (viewName === 'vault') {
+                document.querySelectorAll('.arena-footer-container').forEach(el => el.style.setProperty('display', 'none', 'important'));
+                this.nav.classList.remove('hidden');
+                this.container.innerHTML = this.templates.vault();
+                if (window.state && window.state.vaultTab === 'routines') {
+                    if (window.loadVaultTemplates) window.loadVaultTemplates();
+                }
+            } 
+            else if (viewName === 'log') {
+                this.nav.classList.add('hidden');
+                this.container.innerHTML = this.templates.logSession(window.currentExerciseId);
+            } 
+            else if (viewName === 'folders') {
+                this.nav.classList.remove('hidden');
+                this.container.innerHTML = this.templates.folders();
+            } 
+            else if (viewName === 'arena') {
+                this.nav.classList.remove('hidden');
+                const footerShow = document.querySelector('.arena-footer-container'); 
+                if(footerShow) footerShow.style.display = 'flex';
+                this.container.innerHTML = this.templates.arena();
+                if (typeof Arena !== 'undefined' && typeof Arena.init === 'function') Arena.init();
+                
+                // Trigger Arena Tour
+                if (localStorage.getItem('arena_tour_completed') !== 'true' && typeof window.startArenaTour === 'function') {
+                    setTimeout(() => window.startArenaTour(), 500);
+                }
+            } 
+            else if (viewName === 'postWorkout') {
+                this.nav.classList.add('hidden');
+                this.container.innerHTML = this.templates.postWorkout();
+                this.initPostWorkoutChart();
+            } 
+            else if (viewName === 'profile') {
+                document.querySelectorAll('.arena-footer-container').forEach(el => el.style.setProperty('display', 'none', 'important'));
+                this.nav.classList.remove('hidden');
+                this.container.innerHTML = this.templates.profile();
+                setTimeout(() => this.bindProfileLogic(), 100);
+            } 
+            else if (viewName === 'history') {
+                document.querySelectorAll('.arena-footer-container').forEach(el => el.style.setProperty('display', 'none', 'important'));
+                this.nav.classList.remove('hidden');
+                this.container.innerHTML = this.templates.history();
+            } 
+            else {
+                this.container.innerHTML = `<h1>Feature coming soon!</h1>`;
             }
-        } 
-        else if (viewName === 'postWorkout') {
-            this.nav.classList.add('hidden');
-            this.container.innerHTML = this.templates.postWorkout();
-            this.initPostWorkoutChart();
-        } 
-        else if (viewName === 'profile') {
-            this.nav.classList.remove('hidden');
-            this.container.innerHTML = this.templates.profile();
-            setTimeout(() => this.bindProfileLogic(), 100);
-        } 
-        else if (viewName === 'history') {
-            this.nav.classList.remove('hidden');
-            this.container.innerHTML = this.templates.history();
-        } 
-        else {
-            this.container.innerHTML = `<h1>Feature coming soon!</h1>`;
-        }
 
-        this.renderActiveSessionBar();
+            setTimeout(() => {
+                const av = localStorage.getItem('squadfit_avatar');
+                if(av) {
+                    document.querySelectorAll('.profile-avatar, .user-avatar, img[src*="avatar"]').forEach(img => {
+                        img.src = av;
+                        img.style.display = 'block';
+                        if(img.previousElementSibling && img.previousElementSibling.tagName === 'SPAN') {
+                            img.previousElementSibling.style.display = 'none';
+                        }
+                    });
+                }
+            }, 50);
+
+            this.renderActiveSessionBar();
+
+        } catch (error) {
+            console.error("FATAL RENDER CRASH:", error);
+            const container = document.querySelector('#app-container') || document.querySelector('#main-content') || document.querySelector('main') || document.body;
+            if (container) {
+                container.innerHTML = `<div style="color: #ff4444; padding: 40px; text-align: center; font-family: monospace;">
+                    <h2>System Crash</h2>
+                    <p>${error.name}: ${error.message}</p>
+                    <p style="font-size: 12px; color: #888;">Check developer console for trace.</p>
+                </div>`;
+            }
+        }
     },
 
     renderActiveSessionBar() {
@@ -510,6 +596,28 @@ const UI = {
         }
         if (typeof UI.loadUserPosts === 'function') {
             UI.loadUserPosts();
+        }
+
+        if (typeof window.fetchUserAnalytics === 'function') {
+            window.fetchUserAnalytics().then(({labels, data}) => {
+                const ctx = document.getElementById('volumeChart');
+                if (ctx) {
+                    if (window.volumeChartInstance) window.volumeChartInstance.destroy();
+                    window.volumeChartInstance = new Chart(ctx.getContext('2d'), {
+                        type: 'bar',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: 'Total Volume (kg)',
+                                data: data,
+                                backgroundColor: '#00ffcc',
+                                borderRadius: 4
+                            }]
+                        },
+                        options: { scales: { y: { beginAtZero: true } } }
+                    });
+                }
+            }).catch(e => console.error("Chart error:", e));
         }
     },
 
@@ -809,11 +917,15 @@ const UI = {
         },
         vault: () => {
             const currentTab = window.state.vaultTab || 'universal';
+            const hideProTip = localStorage.getItem('hideProTip') === 'true';
             
             const toggleHTML = `
-                <div id="swipe-hint-banner" style="background: rgba(0, 209, 255, 0.1); border: 1px solid rgba(0, 209, 255, 0.3); border-radius: var(--radius-sm); padding: 12px; text-align: center; color: var(--accent-cyan); font-size: 0.85rem; margin-bottom: var(--space-md); transition: opacity 0.5s ease;">
-                    💡 Pro Tip: Swipe right on a set to quickly log it!
+                ${!hideProTip ? `
+                <div id="swipe-hint-banner" style="background: rgba(0, 209, 255, 0.1); border: 1px solid rgba(0, 209, 255, 0.3); border-radius: var(--radius-sm); padding: 12px; display: flex; justify-content: space-between; align-items: center; color: var(--accent-cyan); font-size: 0.85rem; margin-bottom: var(--space-md); transition: opacity 0.5s ease;">
+                    <span>💡 Pro Tip: Swipe right on a set to quickly log it!</span>
+                    <button style="background: none; border: none; color: var(--accent-cyan); font-size: 1.2rem; cursor: pointer; padding: 0 5px;" onclick="localStorage.setItem('hideProTip', 'true'); document.getElementById('swipe-hint-banner').style.display='none';">✕</button>
                 </div>
+                ` : ''}
                 <div style="display: flex; gap: var(--space-sm); margin-bottom: var(--space-md); background: rgba(255,255,255,0.05); padding: 4px; border-radius: var(--radius-md); backdrop-filter: blur(10px);">
                     <button style="flex: 1; padding: 10px; border-radius: 4px; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; background: ${currentTab === 'universal' ? 'rgba(0, 209, 255, 0.2)' : 'transparent'}; color: ${currentTab === 'universal' ? '#00D1FF' : '#A0A0A0'}; box-shadow: ${currentTab === 'universal' ? '0 0 10px rgba(0, 209, 255, 0.1)' : 'none'};" onclick="window.state.vaultTab='universal'; app.navTo('vault');">Universal Database</button>
                     <button style="flex: 1; padding: 10px; border-radius: 4px; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; background: ${currentTab === 'routines' ? 'rgba(255, 95, 31, 0.2)' : 'transparent'}; color: ${currentTab === 'routines' ? '#FF5F1F' : '#A0A0A0'}; box-shadow: ${currentTab === 'routines' ? '0 0 10px rgba(255, 95, 31, 0.1)' : 'none'};" onclick="window.state.vaultTab='routines'; app.navTo('vault');">My Routines</button>
@@ -1012,36 +1124,134 @@ const UI = {
             `;
         },
         arena: () => {
+            const currentTab = window.state.arenaTab || 'global';
+            
+            const toggleHTML = `
+                <div style="display: flex; gap: var(--space-sm); margin-bottom: var(--space-md); background: rgba(255,255,255,0.05); padding: 4px; border-radius: var(--radius-md); backdrop-filter: blur(10px);">
+                    <button style="flex: 1; padding: 10px; border-radius: 4px; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; background: ${currentTab === 'global' ? 'rgba(0, 209, 255, 0.2)' : 'transparent'}; color: ${currentTab === 'global' ? '#00D1FF' : '#A0A0A0'};" onclick="window.state.arenaTab='global'; UI.renderView('arena');">Global Ranks</button>
+                    <button style="flex: 1; padding: 10px; border-radius: 4px; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; background: ${currentTab === 'squad' ? 'rgba(255, 95, 31, 0.2)' : 'transparent'}; color: ${currentTab === 'squad' ? '#FF5F1F' : '#A0A0A0'};" onclick="window.state.arenaTab='squad'; UI.renderView('arena');">My Squad</button>
+                </div>
+            `;
+            
+            const myVolume = parseInt(localStorage.getItem('userTotalVolume')) || 0;
+            const currentUser = localStorage.getItem('username') || 'You';
+
+            let leaderboardData = [];
+            if (currentTab === 'global') {
+                leaderboardData = [
+                    { name: currentUser, vol: myVolume, isMe: true },
+                    { name: 'Alex', vol: 24500, isMe: false },
+                    { name: 'Sam', vol: 18200, isMe: false },
+                    { name: 'Jordan', vol: 9400, isMe: false }
+                ];
+            } else {
+                leaderboardData = [
+                    { name: 'SquadLeader_01', vol: 15000, isMe: false },
+                    { name: currentUser, vol: myVolume, isMe: true },
+                    { name: 'IronLifter99', vol: 3200, isMe: false }
+                ];
+            }
+
+            leaderboardData.sort((a, b) => b.vol - a.vol);
+
+            const getRank = (vol) => {
+                if (vol >= 20000) return { label: 'APEX TIER', color: 'rgba(255, 95, 31, 0.2)', text: '#FFF' };
+                if (vol >= 15000) return { label: 'TITAN', color: 'rgba(0, 209, 255, 0.2)', text: '#FFF' };
+                if (vol >= 10000) return { label: 'GLADIATOR', color: 'rgba(155, 89, 182, 0.3)', text: '#FFF' };
+                if (vol >= 5000) return { label: 'CONTENDER', color: 'rgba(46, 204, 113, 0.2)', text: '#FFF' };
+                return { label: 'INITIATE', color: 'rgba(255, 255, 255, 0.1)', text: '#FFF' };
+            };
+
+            let rowsHTML = leaderboardData.map((user, idx) => {
+                const rankObj = getRank(user.vol);
+                const isFirst = idx === 0;
+                return `
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: ${user.isMe ? 'none' : '1px solid rgba(255,255,255,0.05)'}; padding: 12px ${user.isMe ? '8px' : '0'}; background: ${user.isMe ? 'rgba(0, 209, 255, 0.05)' : 'transparent'}; border-radius: ${user.isMe ? '8px' : '0'}; margin-top: ${user.isMe ? '8px' : '0'};">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <span style="font-weight: bold; color: ${isFirst ? 'var(--accent-cyan)' : (user.isMe ? '#FFF' : '#A0A0A0')};">${idx + 1}.</span>
+                            <div style="width: 40px; height: 40px; border-radius: 50%; background: ${user.isMe ? 'var(--accent-cyan)' : '#333'}; color: ${user.isMe ? '#000' : '#FFF'}; display: flex; align-items: center; justify-content: center; font-weight: bold; text-transform: uppercase;">
+                                ${user.name.substring(0, 2)}
+                            </div>
+                            <div>
+                                <div style="font-weight: bold; color: #FFF;">${user.name}</div>
+                                <div style="font-size: 0.75rem; color: ${rankObj.text}; background: ${rankObj.color}; padding: 2px 6px; border-radius: 4px; display: inline-block;">${rankObj.label}</div>
+                            </div>
+                        </div>
+                        <div style="text-align: right; padding-right: ${user.isMe ? '8px' : '0'};">
+                            <div style="font-weight: bold; color: var(--accent-cyan);">${user.vol.toLocaleString()} kg</div>
+                            <div style="font-size: 0.75rem; color: var(--text-sec);">Vol.</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
             return `
-            <div class="arena-wrapper fade-in" style="padding-bottom: 120px; min-height: 100vh;">
-                <header style="margin-bottom: var(--space-md); display: flex; justify-content: flex-start; align-items: center; position: sticky; top: 0; background: var(--bg-midnight); z-index: 100; padding: 10px 0;">
-                    <h2 class="text-highlight" style="margin: 0;">The Arena</h2>
+            <div class="arena-wrapper fade-in" style="padding-bottom: 120px; padding-top: 20px;">
+                <header style="margin-bottom: var(--space-md);">
+                    <h2 class="text-highlight" style="margin: 0;">Arena Leaderboards</h2>
+                    <p class="text-sec" style="font-size: 0.9rem;">Compete globally or dominate your squad.</p>
                 </header>
+                
+                ${toggleHTML}
+                
+                <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 16px;">
+                    ${rowsHTML}
+                </div>
+            </div>
+            `;
+        },
+        workoutOverlay: () => {
+            return `
+            <div class="arena-wrapper fade-in" style="padding-bottom: 120px; min-height: 100vh; padding: 20px;">
+                <header style="margin-bottom: var(--space-md); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; background: var(--bg-midnight); z-index: 100; padding: 10px 0;">
+                    <button class="secondary-btn" style="border: none; color: #A0A0A0; font-weight: bold; font-size: 1rem;" onclick="window.minimizeWorkout()">
+                        🔽 Minimize
+                    </button>
+                    ${(window.state && window.state.isSessionActive === true) ? `
+                         <button class="neon-btn" style="background: var(--accent-success); border-color: var(--accent-success); box-shadow: 0 4px 15px rgba(46, 204, 113, 0.4); padding: 8px 16px; font-size: 0.9rem;" onclick="window.finishGlobalWorkout()">
+                            Finish
+                        </button>
+                    ` : ``}
+                </header>
+
+                <div style="display: flex; flex-direction: column; text-align: center; margin-bottom: 20px; padding: 10px; background: rgba(0, 209, 255, 0.05); border-radius: 12px; border: 1px solid rgba(0, 209, 255, 0.1);">
+                    <span id="arena-timer-display" style="font-family: monospace; font-size: 2rem; color: #FFF; font-weight: bold; letter-spacing: 2px;">00:00</span>
+                    <span id="arena-total-volume" style="font-size: 1rem; color: var(--accent-cyan); font-weight: bold;">⚡ 0 kg</span>
+                </div>
 
                 <div id="arena-exercises-container">
                     <!-- Exercise Cards are injected here via Arena_Logic.js -->
                 </div>
 
-                ${(window.state && window.state.isSessionActive) ? `
-                <div style="position: fixed; bottom: 70px; left: 0; right: 0; height: 80px; background: rgba(5,7,10,0.95); backdrop-filter: blur(10px); border-top: 1px solid rgba(0, 209, 255, 0.2); display: flex; justify-content: space-between; align-items: center; padding: 0 20px; z-index: 100; box-sizing: border-box;">
-                    <div style="display: flex; flex-direction: column;">
-                        <span id="arena-timer-display" style="font-family: monospace; font-size: 1.2rem; color: #FFF; font-weight: bold;">00:00</span>
-                        <span id="arena-total-volume" style="font-size: 0.85rem; color: var(--accent-cyan); font-weight: bold;">⚡ 0 kg</span>
+                <!-- EXERCISE PICKER MODAL -->
+                <div id="exercise-picker-modal" class="bottom-sheet" style="padding-bottom: 20px !important; z-index: 9500;">
+                    <div class="sheet-header">
+                        <h3>Add Exercise</h3>
+                        <button class="sheet-close-btn" onclick="document.getElementById('exercise-picker-modal').classList.remove('active')">✕</button>
                     </div>
-                    <button class="neon-btn" style="background: var(--accent-success); border-color: var(--accent-success); box-shadow: 0 4px 15px rgba(46, 204, 113, 0.4); padding: 10px 24px; font-size: 1rem;" onclick="window.forceSaveWorkout()">
-                        Finish
-                    </button>
+                    <input type="text" id="picker-search" placeholder="Search exercises..." style="width: calc(100% - 32px); padding: 12px; margin: 0 16px 15px 16px; border-radius: 8px; background: #2c2c2e; color: #fff; border: none; font-size: 1rem; box-sizing: border-box;" onkeyup="
+                        const val = this.value.toLowerCase();
+                        const btns = document.querySelectorAll('.ex-picker-btn');
+                        btns.forEach(btn => {
+                            if (btn.innerText.toLowerCase().includes(val)) btn.style.display = 'block';
+                            else btn.style.display = 'none';
+                        });
+                    ">
+                    <div class="sheet-controls" style="max-height: 50vh; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding: 0 16px;">
+                        ${(() => {
+                            if (window.exerciseDB) {
+                                return Object.keys(window.exerciseDB).map(exKey => {
+                                    const exName = window.exerciseDB[exKey].name || exKey;
+                                    return `<button class="secondary-btn ex-picker-btn" style="width: 100%; border: 1px solid rgba(255,255,255,0.1); color: #FFF; padding: 12px; text-align: left; background: rgba(0,0,0,0.2);" onclick="window.addSpecificExerciseToArena('${exName.replace(/'/g, "\\'")}')">${exName}</button>`;
+                                }).join('');
+                            }
+                            return `<div style="text-align: center; color: var(--text-dim);">No exercises found</div>`;
+                        })()}
+                    </div>
                 </div>
-                ` : `
-                <div style="position: fixed; bottom: 70px; left: 0; right: 0; height: 80px; background: rgba(5,7,10,0.95); backdrop-filter: blur(10px); border-top: 1px solid rgba(0, 209, 255, 0.2); display: flex; justify-content: center; align-items: center; padding: 0 20px; z-index: 100; box-sizing: border-box;">
-                    <button class="neon-btn" style="width: 100%; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; gap: 8px;" onclick="Arena.beginSession()">
-                        🚀 Start Session
-                    </button>
-                </div>
-                `}
 
-                <!-- BOTTOM SHEET MODAL -->
-                <div id="arena-bottom-sheet" class="bottom-sheet">
+                <!-- BOTTOM SHEET MODAL (LOGGER) -->
+                <div id="arena-bottom-sheet" class="bottom-sheet" style="z-index: 10000000 !important;">
                     <div class="sheet-header">
                         <h3>Log Set</h3>
                         <button class="sheet-close-btn" onclick="window.closeLogSheet()">✕</button>
@@ -1051,7 +1261,7 @@ const UI = {
                             <div style="color: #A0A0A0; font-size: 0.85rem; text-transform: uppercase;">Reps</div>
                             <div style="display: flex; align-items: center; justify-content: center; gap: 20px;">
                                 <button class="qty-btn" onclick="window.adjReps(-1)">-</button>
-                                <span id="bs-reps" class="qty-display">10</span>
+                                <input type="number" id="bs-reps" value="10" class="qty-display" style="background: transparent; border: none; color: #FFF; font-size: 2rem; font-weight: bold; text-align: center; width: 80px; outline: none; -moz-appearance: textfield; appearance: none;">
                                 <button class="qty-btn" onclick="window.adjReps(1)">+</button>
                             </div>
                         </div>
@@ -1059,7 +1269,7 @@ const UI = {
                             <div style="color: #A0A0A0; font-size: 0.85rem; text-transform: uppercase;">Weight (kg)</div>
                             <div style="display: flex; align-items: center; justify-content: center; gap: 20px;">
                                 <button class="qty-btn" onclick="window.adjWeight(-2.5)">-</button>
-                                <span id="bs-weight" class="qty-display">20</span>
+                                <input type="number" id="bs-weight" value="20" class="qty-display" style="background: transparent; border: none; color: #FFF; font-size: 2rem; font-weight: bold; text-align: center; width: 80px; outline: none; -moz-appearance: textfield; appearance: none;">
                                 <button class="qty-btn" onclick="window.adjWeight(2.5)">+</button>
                             </div>
                         </div>
@@ -1109,7 +1319,11 @@ const UI = {
                     ${fabHTML}
                 `;
             } else if (currentTab === 'manage') {
-                if (!db.user || !db.user.squadId) {
+                const username = localStorage.getItem('username') || 'Guest';
+                const squads = JSON.parse(localStorage.getItem('squads') || '[]');
+                const targetSquad = squads.find(s => s.members.includes(username));
+
+                if (!targetSquad) {
                     mainContent = `
                         <div style="text-align: center; margin-top: 40px; padding: var(--space-xl);">
                             <div style="font-size: 3rem; margin-bottom: var(--space-md); color: #A0A0A0;">🛡️</div>
@@ -1118,72 +1332,58 @@ const UI = {
                             
                             <div style="display: flex; flex-direction: column; gap: var(--space-md); max-width: 300px; margin: 0 auto;">
                                 <input type="text" id="squad-name-input" placeholder="Enter Squad Name" maxlength="20" style="padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-subtle); color: #FFF; border-radius: var(--radius-sm); text-align: center; font-size: 1rem;">
-                                <button class="neon-btn" style="width: 100%; box-shadow: 0 4px 15px rgba(0, 209, 255, 0.2);" onclick="window.handleCreateSquad()">
+                                <button class="neon-btn" style="width: 100%; box-shadow: 0 4px 15px rgba(0, 209, 255, 0.2);" onclick="window.createNewSquad()">
                                     + Create Squad
                                 </button>
                                 <input type="text" id="squad-invite-input" placeholder="Invite Code (e.g. ABC123)" maxlength="6" style="padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-subtle); color: #FFF; border-radius: var(--radius-sm); text-align: center; font-size: 1rem; margin-top: 10px; text-transform: uppercase;">
-                                <button class="secondary-btn" style="width: 100%; border: 1px solid var(--accent-cyan); color: var(--accent-cyan);" onclick="window.handleJoinSquad()">
+                                <button class="secondary-btn" style="width: 100%; border: 1px solid var(--accent-cyan); color: var(--accent-cyan);" onclick="window.joinExistingSquad()">
                                     Join Squad
                                 </button>
                             </div>
                         </div>
                     `;
                 } else {
-                    const oneWeekAgo = new Date();
-                    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-                    let myVol = 0;
-                    if(db && db.strength_logs) {
-                        db.strength_logs.forEach(l => {
-                            if (new Date(l.date) >= oneWeekAgo) {
-                                myVol += l.sets.reduce((sum, s) => sum + (s.volume || 0), 0);
-                            }
-                        });
-                    }
-                    
                     mainContent = `
                         <div style="text-align: center; margin-top: 40px; padding: var(--space-xl);">
                             <div style="font-size: 3rem; margin-bottom: var(--space-md); color: #A0A0A0;">🏆</div>
-                            <h3 style="color: #FFFFFF; font-size: 1.5rem; margin-bottom: var(--space-sm);">You are in: <span class="text-highlight">${db.user.squadName || (squad ? squad.name : 'Unknown Squad')}</span></h3>
+                            <h3 style="color: #FFFFFF; font-size: 1.5rem; margin-bottom: var(--space-sm);">You are in: <span class="text-highlight">${targetSquad.name}</span></h3>
                             <p style="color: #A0A0A0; font-size: 1rem; margin-bottom: var(--space-xl);">Invite your friends to compete together!</p>
                             
                             <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0, 209, 255, 0.1); border: 2px solid var(--accent-cyan); border-radius: var(--radius-md); padding: var(--space-lg); box-shadow: 0 0 20px rgba(0,209,255,0.2); position: relative;">
                                 <span style="font-size: 0.8rem; color: #FFF; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px;">Invite Code</span>
-                                <h1 id="squad-invite-display" style="font-size: 3rem; color: #FFF; font-weight: 800; letter-spacing: 5px; margin: 0; filter: drop-shadow(0 0 10px rgba(0,209,255,0.5));">${db.user.inviteCode || (squad ? squad.code : '------')}</h1>
-                                <button onclick="navigator.clipboard.writeText(document.getElementById('squad-invite-display').innerText); alert('Copied code to clipboard!');" style="margin-top: 12px; background: transparent; color: var(--accent-cyan); border: 1px solid var(--accent-cyan); padding: 4px 12px; border-radius: var(--radius-sm); cursor: pointer; font-size: 0.8rem;">
+                                <h1 id="squad-invite-display" style="font-size: 3rem; color: #FFF; font-weight: 800; letter-spacing: 5px; margin: 0; filter: drop-shadow(0 0 10px rgba(0,209,255,0.5));">${targetSquad.id}</h1>
+                                <button onclick="navigator.clipboard.writeText('${targetSquad.id}'); alert('Copied!');" style="margin-top: 12px; background: transparent; color: var(--accent-cyan); border: 1px solid var(--accent-cyan); padding: 4px 12px; border-radius: var(--radius-sm); cursor: pointer; font-size: 0.8rem;">
                                     📋 Copy to Clipboard
                                 </button>
                             </div>
                         </div>
                         
                         <div style="margin-bottom: var(--space-md); display: flex; justify-content: flex-end;">
-                            <button class="secondary-btn disband-btn" style="background: transparent; color: #FF5F1F; border: 1px solid rgba(255, 95, 31, 0.5); padding: 6px 14px; font-size: 0.8rem;" onclick="app.disbandSquad('${squad ? squad.id : ''}')">
-                                Disband Squad
+                            <button class="secondary-btn disband-btn" style="background: transparent; color: #FF5F1F; border: 1px solid rgba(255, 95, 31, 0.5); padding: 6px 14px; font-size: 0.8rem;" onclick="if(confirm('Leave Squad?')) { window.kickMember('${username}'); }">
+                                Leave Squad
                             </button>
-                        </div>
-
-                        <div class="glass-panel" style="margin-bottom: var(--space-md); padding: var(--space-md); background: rgba(0, 209, 255, 0.05); border-color: var(--accent-cyan); display: flex; align-items: center; justify-content: space-between;">
-                             <div>
-                                 <h3 style="margin: 0; color: #FFFFFF; font-size: 1.1rem;">${squad ? squad.name : 'My Squad'} Volume</h3>
-                                 <p style="color: #A0A0A0; font-size: 0.85rem;">Last 7 Days</p>
-                             </div>
-                             <div style="font-size: 1.5rem; font-weight: 800; color: var(--accent-cyan);">
-                                 ${myVol.toLocaleString()} kg
-                             </div>
                         </div>
                         
                         <h4 style="color: #A0A0A0; margin-bottom: var(--space-sm); font-size: 0.9rem; text-transform: uppercase;">Squad Roster</h4>
                     `;
                     
-                    if(squad && squad.members) {
-                        mainContent += squad.members.map(member => `
+                    if(targetSquad.members) {
+                        mainContent += targetSquad.members.map(member => `
                             <div class="glass-panel" style="margin-bottom: var(--space-sm); padding: var(--space-md); background: #161B22; border-color: rgba(255,255,255,0.05); display: flex; align-items: center; gap: var(--space-md);">
                                 <div style="width: 45px; height: 45px; border-radius: 50%; background: #00D1FF; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #05070A; font-size: 1.2rem; box-shadow: 0 0 10px rgba(0,209,255,0.4);">
-                                    ${member.charAt(0)}
+                                    ${member.charAt(0).toUpperCase()}
                                 </div>
                                 <div style="flex: 1;">
-                                    <h4 style="margin: 0; color: #FFFFFF; font-size: 1.1rem; margin-bottom: 4px;">${member}</h4>
-                                    <p style="color: #A0A0A0; font-size: 0.85rem;">Active Member</p>
+                                    <h4 style="margin: 0; color: #FFFFFF; font-size: 1.1rem; margin-bottom: 4px;">
+                                        ${member} ${targetSquad.admin === member ? '👑' : ''}
+                                    </h4>
+                                    <p style="color: #A0A0A0; font-size: 0.85rem;">${targetSquad.admin === member ? 'Squad Admin' : 'Active Member'}</p>
                                 </div>
+                                ${(targetSquad.admin === username && member !== username) ? `
+                                <button onclick="window.kickMember('${member}')" style="background: transparent; border: 1px solid #FF5F1F; color: #FF5F1F; border-radius: 4px; padding: 4px 8px; cursor: pointer;">
+                                    🗑️ Remove
+                                </button>
+                                ` : ''}
                             </div>
                         `).join('');
                     }
@@ -1264,6 +1464,14 @@ const UI = {
         },
         profile: () => {
             const p = window.state.userProfile || {};
+            
+            let userStreak = parseInt(localStorage.getItem('streakCount')) || 0;
+            let currentRank = 'INITIATE';
+            if (userStreak >= 30) currentRank = 'APEX';
+            else if (userStreak >= 21) currentRank = 'TITAN';
+            else if (userStreak >= 14) currentRank = 'GLADIATOR';
+            else if (userStreak >= 7) currentRank = 'CONTENDER';
+
             const user = { 
                 name: p.name || 'Athlete', 
                 currentWeight: p.current_weight || p.start_weight || 80, 
@@ -1271,8 +1479,8 @@ const UI = {
                 height: p.height || 180,
                 age: p.age || '',
                 gender: p.gender || '',
-                goalDate: p.goal_date || '',
-                rank: p.rank || 'IRON'
+                goalDate: p.goal_date || localStorage.getItem('profile_goalDate') || '',
+                rank: currentRank
             };
             
             // Calculate BMI Status and Psych Message
@@ -1302,8 +1510,14 @@ const UI = {
 
             return `
             <div class="profile-wrapper fade-in" style="padding-bottom: 80px;">
-                <header style="margin-bottom: var(--space-lg);">
+                <header style="margin-bottom: var(--space-lg); display: flex; justify-content: space-between; align-items: center;">
                     <h2 class="text-highlight">Profile & Settings</h2>
+                    <div onclick="window.triggerProfileUpload()" style="width: 60px; height: 60px; border-radius: 50%; background: #222; border: 2px solid var(--accent-cyan); display: flex; justify-content: center; align-items: center; font-size: 1.8rem; overflow: hidden; cursor: pointer; position: relative; box-shadow: 0 0 15px rgba(0,209,255,0.3);">
+                        ${localStorage.getItem('squadfit_avatar') 
+                            ? `<img src="${localStorage.getItem('squadfit_avatar')}" class="profile-avatar" style="width: 100%; height: 100%; object-fit: cover; position: absolute; top:0; left:0;">` 
+                            : `<span style="display: ${localStorage.getItem('squadfit_avatar')?'none':'block'}">👤</span><img class="profile-avatar" style="width: 100%; height: 100%; object-fit: cover; position: absolute; top:0; left:0; display: none;">`
+                        }
+                    </div>
                 </header>
                 
                 ${bmiStatusHTML}
@@ -1349,11 +1563,11 @@ const UI = {
                     <div style="display: flex; gap: var(--space-md);">
                         <div style="flex: 1;">
                             <label class="text-sec" style="font-size: 0.8rem; margin-bottom: 4px; display: block;">Current Wt (kg)</label>
-                            <input type="number" id="prof-current-weight" value="${user.currentWeight || ''}" style="color: #fff;">
+                            <input type="number" id="prof-current-wt" value="${user.currentWeight || ''}" style="color: #fff;">
                         </div>
                         <div style="flex: 1;">
                             <label class="text-sec" style="font-size: 0.8rem; margin-bottom: 4px; display: block;">Target Wt (kg)</label>
-                            <input type="number" id="prof-goal-weight" value="${user.goalWeight || ''}" style="color: #fff;">
+                            <input type="number" id="prof-target-wt" value="${user.goalWeight || ''}" style="color: #fff;">
                         </div>
                     </div>
                     
@@ -1362,7 +1576,7 @@ const UI = {
                     
                     ${psychMessage}
                     
-                    <button id="save-profile-btn" class="neon-btn" onclick="saveProfileData()" style="margin-top: var(--space-md); width: 100%;">
+                    <button id="save-profile-btn" class="neon-btn" onclick="window.saveProfile(this)" style="margin-top: var(--space-md); width: 100%;">
                         Save Profile
                     </button>
                     <button id="logout-btn" class="secondary-btn" onclick="app.logout()" style="margin-top: var(--space-md); width: 100%; border-color: rgba(255, 95, 31, 0.5); color: #FF5F1F;">
@@ -1370,9 +1584,30 @@ const UI = {
                     </button>
                 </div>
 
+                <div class="analytics-card" style="background: #1c1c1e; padding: 20px; border-radius: 12px; margin-top: 20px; margin-bottom: 20px;">
+                    <h3 style="color: #00ffcc; margin-bottom: 15px;">Progressive Overload</h3>
+                    <canvas id="volumeChart" width="400" height="200"></canvas>
+                </div>
+
                 <div style="margin-top: var(--space-lg);">
                     <h3 class="text-highlight" style="margin-bottom: var(--space-md); text-align: center;">My Posts</h3>
-                    <div id="user-posts-grid" class="posts-grid"></div>
+                    <div id="user-posts-grid" class="posts-grid" style="display: flex; flex-direction: column; gap: 10px;">
+                        ${(() => {
+                            const currentUser = localStorage.getItem('username') || 'Guest';
+                            const posts = JSON.parse(localStorage.getItem('squad_posts') || '[]');
+                            const myPosts = posts.filter(p => p.author === currentUser || p.username === currentUser);
+                            if (myPosts.length === 0) return '<div style="color:var(--text-dim);text-align:center;">No posts yet.</div>';
+                            return myPosts.map((p, idx) => `
+                                <div class="glass-panel" style="padding: 12px; border: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center;">
+                                    <div style="flex: 1;">
+                                        <div style="color: #FFF; font-size: 0.9rem;">${p.caption || p.text}</div>
+                                        <div style="color: var(--text-dim); font-size: 0.75rem;">${new Date(p.time || p.timestamp || Date.now()).toLocaleString()}</div>
+                                    </div>
+                                    <button onclick="window.deletePost('${p.time || idx}')" style="background: rgba(255,59,48,0.1); border: 1px solid #FF3B30; color: #FF3B30; padding: 6px 12px; border-radius: 4px; font-size: 0.8rem; cursor: pointer;">Delete</button>
+                                </div>
+                            `).join('');
+                        })()}
+                    </div>
                 </div>
             </div>
             `;
@@ -1428,22 +1663,26 @@ const UI = {
                 </div>
             </div>
         `,
-        dashboard: () => {
+        dashboard: (streakVal = 0) => {
+            if (localStorage.getItem('username') === '69noobsslayer') { localStorage.setItem('username', 'Athlete'); }
             const user = DB.getUser() || { name: 'Athlete' };
-            const currentStreak = DB.calculateUserStreak ? DB.calculateUserStreak() : 4;
+            const currentStreak = streakVal || (DB.calculateUserStreak ? DB.calculateUserStreak() : 4);
             
             // 1. Header & Streak
             const headerHTML = `
                 <div style="width: 100%; display: flex; flex-direction: column; gap: 16px; margin-bottom: 24px;">
                     <div style="width: 100%; background: #161b22; border: 1px solid #ff4500; border-radius: 50px; padding: 10px; display: flex; justify-content: center; align-items: center; box-shadow: 0 0 10px rgba(255,69,0,0.2);">
-                        <span style="color: #ff4500; font-weight: bold; font-size: 0.9rem;">Current Streak: 🔥 ${currentStreak} Days</span>
+                        <span id="streak-counter" style="color: #ff4500; font-weight: bold; font-size: 0.9rem;">Current Streak: 🔥 ${currentStreak} Days</span>
                     </div>
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <h2 style="font-size: 1.5rem; font-weight: 700; color: #FFF; margin: 0;">
                             Welcome back,<br><span style="color: #00d2ff;">${user.name}</span>
                         </h2>
-                        <div style="width: 50px; height: 50px; border-radius: 50%; background: #222; border: 2px solid #00d2ff; display: flex; justify-content: center; align-items: center; font-size: 1.5rem; overflow: hidden;">
-                            👤
+                        <div onclick="window.triggerProfileUpload()" style="width: 50px; height: 50px; border-radius: 50%; background: #222; border: 2px solid #00d2ff; display: flex; justify-content: center; align-items: center; font-size: 1.5rem; overflow: hidden; cursor: pointer; position: relative;">
+                            ${localStorage.getItem('squadfit_avatar') 
+                                ? `<img src="${localStorage.getItem('squadfit_avatar')}" class="user-avatar" style="width: 100%; height: 100%; object-fit: cover; position: absolute; top:0; left:0;">` 
+                                : `<span>👤</span><img class="user-avatar" style="width: 100%; height: 100%; object-fit: cover; position: absolute; top:0; left:0; display: none;">`
+                            }
                         </div>
                     </div>
                 </div>
@@ -1454,15 +1693,14 @@ const UI = {
                 <div style="width: 100%; margin-bottom: 24px;">
                     <h3 style="color: #FFF; font-size: 0.85rem; font-weight: 700; text-transform: uppercase; margin-bottom: 12px; letter-spacing: 0.5px;">Recommended For You</h3>
                     <div class="horizontal-scroll" style="display: flex; gap: 12px; padding-bottom: 8px;">
-                        <button class="rec-btn">PPL | Push</button>
-                        <button class="rec-btn">PPL | Pull</button>
-                        <button class="rec-btn">PPL | Legs</button>
-                        <button class="rec-btn">Cardio Core</button>
+                        <button class="rec-btn" onclick="UI.renderView('exerciseDetail', 'PPL | Push')">PPL | Push</button>
+                        <button class="rec-btn" onclick="UI.renderView('exerciseDetail', 'PPL | Pull')">PPL | Pull</button>
+                        <button class="rec-btn" onclick="UI.renderView('exerciseDetail', 'PPL | Legs')">PPL | Legs</button>
+                        <button class="rec-btn" onclick="UI.renderView('exerciseDetail', 'Cardio Core')">Cardio Core</button>
                     </div>
                 </div>
             `;
 
-            // 3. Goal Calendar Card
             const daysLeft = 65;
             const progressHue = 65; 
             
@@ -1472,18 +1710,18 @@ const UI = {
                     <div style="display: flex; justify-content: center; margin: 20px 0;">
                         <div class="goal-ring" style="background: conic-gradient(#00d2ff ${progressHue}%, #333 0);">
                             <div class="goal-ring-inner">
-                                <span class="goal-number">${daysLeft}</span>
+                                <span class="goal-number" id="dash-days-left">--</span>
                                 <span class="goal-label">Days Left</span>
                             </div>
                         </div>
                     </div>
                     <div style="display: flex; justify-content: space-between; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 16px;">
                         <div style="text-align: center; flex: 1; border-right: 1px solid rgba(255,255,255,0.05);">
-                            <div style="font-size: 1.4rem; font-weight: bold; color: #FFF;">20 kg</div>
+                            <div style="font-size: 1.4rem; font-weight: bold; color: #FFF;"><span id="dash-kg-lose">--</span> kg</div>
                             <div style="font-size: 0.75rem; color: #888; text-transform: uppercase;">To Lose</div>
                         </div>
                         <div style="text-align: center; flex: 1;">
-                            <div style="font-size: 1.4rem; font-weight: bold; color: #FFF;">2.15 <span style="font-size: 0.9rem;">kg/w</span></div>
+                            <div style="font-size: 1.4rem; font-weight: bold; color: #FFF;"><span id="dash-req-rate">--</span> <span style="font-size: 0.9rem;">kg/w</span></div>
                             <div style="font-size: 0.75rem; color: #888; text-transform: uppercase;">Req. Rate</div>
                         </div>
                     </div>
@@ -1501,31 +1739,31 @@ const UI = {
                         <div id="hydration-bar-fill" class="hydro-progress-fill"></div>
                     </div>
                     <div class="hydro-btn-row" style="display: flex; justify-content: space-between; gap: 10px; margin-top: 15px;">
-                        <button class="hydro-quick-btn" data-amount="-250">
+                        <button class="hydro-quick-btn" onclick="window.logWater(-250)" data-amount="-250">
                             <span class="hydro-icon">
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 00-9-9 9 9 0 00-6 2.3L3 13"/></svg>
                             </span>
                             <span class="hydro-text">-250</span>
                         </button>
-                        <button class="hydro-quick-btn" data-amount="250">
+                        <button class="hydro-quick-btn" onclick="window.logWater(250)" data-amount="250">
                             <span class="hydro-icon">
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2l1.5 18h9L18 2H6z"/><path d="M7 10h10"/></svg>
                             </span>
                             <span class="hydro-text">+250</span>
                         </button>
-                        <button class="hydro-quick-btn" data-amount="500">
+                        <button class="hydro-quick-btn" onclick="window.logWater(500)" data-amount="500">
                             <span class="hydro-icon">
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8h12v9a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4V8z"/><path d="M17 10h1a3 3 0 0 1 0 6h-1"/><path d="M8 3v2"/><path d="M12 3v2"/><path d="M16 3v2"/></svg>
                             </span>
                             <span class="hydro-text">+500</span>
                         </button>
-                        <button class="hydro-quick-btn" data-amount="750">
+                        <button class="hydro-quick-btn" onclick="window.logWater(750)" data-amount="750">
                             <span class="hydro-icon">
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2h6v2H9z"/><path d="M10 4v3l-2 3v10h8V10l-2-3V4"/></svg>
                             </span>
                             <span class="hydro-text">+750</span>
                         </button>
-                        <button class="hydro-quick-btn" data-amount="1000">
+                        <button class="hydro-quick-btn" onclick="window.logWater(1000)" data-amount="1000">
                             <span class="hydro-icon">
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2h8v2H8z"/><path d="M10 4v3l-3 3v10a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V10l-3-3V4"/><path d="M17 12h2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2h-2"/></svg>
                             </span>
@@ -1534,6 +1772,9 @@ const UI = {
                     </div>
                 </div>
             `;
+
+            // Nuke block has been removed safely here
+            setTimeout(() => { if(typeof window.syncGoalCalendar === 'function') window.syncGoalCalendar(); }, 100);
 
             return `
             <div class="dashboard-wrapper fade-in" style="padding: 20px 16px; padding-bottom: 90px; width: 100%; max-width: 500px; margin: 0 auto; box-sizing: border-box;">
@@ -1613,7 +1854,7 @@ const UI = {
                     ${(window.state && window.state.isSessionActive) ? 
                         `<button class="btn-start-routine" id="start-single-exercise-btn" style="width: 100%; padding: 15px; font-size: 1.1rem; box-shadow: 0 4px 15px rgba(0, 210, 255, 0.3); background: var(--accent-success); border-color: var(--accent-success);" onclick="Arena.appendExercise('${exerciseId}')">➕ Add to Current Workout</button>` 
                         : 
-                        `<button class="btn-start-routine" id="start-single-exercise-btn" style="width: 100%; padding: 15px; font-size: 1.1rem; box-shadow: 0 4px 15px rgba(0, 210, 255, 0.3);" onclick="Arena.startExerciseDirectly('${exerciseId}')">🚀 Start This Exercise</button>`
+                        `<button class="btn-start-routine" id="start-single-exercise-btn" style="width: 100%; padding: 15px; font-size: 1.1rem; box-shadow: 0 4px 15px rgba(0, 210, 255, 0.3);" onclick="window.startGlobalWorkout('${exerciseId}')">🚀 START WORKOUT</button>`
                     }
                 </div>
             </div>
@@ -1700,6 +1941,28 @@ const UI = {
             `;
         },
         history: () => {
+            try {
+                const workoutHistory = JSON.parse(localStorage.getItem('workout_history') || '[]');
+                const now = new Date();
+                const year = now.getFullYear();
+                const month = now.getMonth();
+                const daysInMonth = new Date(year, month + 1, 0).getDate();
+                
+                let gridHtml = `<div class="heatmap-month-grid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin: 15px 0; padding: 10px; background: #1c1c1e; border-radius: 12px;">`;
+                
+                for (let i = 1; i <= daysInMonth; i++) {
+                    const d = new Date(year, month, i);
+                    const formattedDate = window.getLocalISO ? window.getLocalISO(d) : d.toISOString().split('T')[0];
+                    const hasWorkout = workoutHistory.some(w => w.date === formattedDate);
+                    
+                    const style = hasWorkout 
+                        ? 'background: #00ffcc; color: #000; font-weight: bold;' 
+                        : 'background: rgba(255,255,255,0.05); color: #888;';
+                        
+                    gridHtml += `<div class="heatmap-square" style="${style} border-radius: 4px; padding: 6px; text-align: center; font-size: 0.8rem; cursor: pointer;" onclick="app.selectHistoryDate('${formattedDate}')">${i}</div>`;
+                }
+                gridHtml += `</div>`;
+
             setTimeout(async () => {
                 try {
                     const barHtml = await app.generateHistorySlidingBar();
@@ -1707,6 +1970,12 @@ const UI = {
                     if (slider) slider.innerHTML = barHtml;
                     await app.selectHistoryDate(window.selectedHistoryDate || new Date().toISOString().split('T')[0]);
                     
+                    setTimeout(() => {
+                        const activeCard = document.querySelector('.horizontal-date-card.active');
+                        if (activeCard) {
+                            activeCard.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+                        }
+                    }, 50);
                 } catch(e) {
                     console.error("History injection failure:", e);
                 }
@@ -1720,9 +1989,8 @@ const UI = {
                 </header>
                 
                 <div style="margin-bottom: var(--space-xl);">
-                    <h3 class="text-highlight" style="font-size: 1.1rem; text-align: center; margin-bottom: 8px;">Last 30 Days</h3>
-                    <div id="heatmap-grid" class="heatmap-container">
-                    </div>
+                    <h3 class="text-highlight" style="font-size: 1.1rem; text-align: center; margin-bottom: 8px;">${new Date().toLocaleString('default', { month: 'long', year: 'numeric' })}</h3>
+                    ${gridHtml}
                 </div>
                 
                 <!-- Sliding Date Bar & Calendar Pivot -->
@@ -1743,6 +2011,10 @@ const UI = {
                 </div>
             </div>
             `;
+            } catch(error) {
+                console.error("History generation failed:", error);
+                return `<div style="text-align:center;color:red;padding:20px;">Error rendering history tab.</div>`;
+            }
         }
     }
 };
@@ -1810,9 +2082,12 @@ UI.loadSocialFeed = async function() {
         const response = await fetch(`${baseUrl}/api/posts?request_user=${encodeURIComponent(username)}`);
         const data = await response.json();
 
-        if (data.success && data.posts.length > 0) {
+        const localPosts = JSON.parse(localStorage.getItem('squad_posts') || '[]');
+        const allPosts = [...localPosts, ...(data.success && data.posts ? data.posts : [])];
+
+        if (allPosts.length > 0) {
             let html = '';
-            data.posts.forEach(post => {
+            allPosts.forEach(post => {
                 let badgeHTML = '';
                 let avatarColor = '#334155';
                 let borderStyle = 'border: 1px solid rgba(255,255,255,0.02);';
@@ -1857,11 +2132,15 @@ UI.loadSocialFeed = async function() {
                                 </div>
                             </div>
                         </div>
-                        ${post.image_url ? `
+                        ${post.images && post.images.length > 0 ? `
+                        <div class="post-image-container">
+                            <img src="${post.images[0]}" alt="Post image" class="post-image" />
+                        </div>
+                        ` : (post.image_url ? `
                         <div class="post-image-container">
                             <img src="${post.image_url}" alt="Post image" class="post-image" />
                         </div>
-                        ` : ''}
+                        ` : '')}
                         <div class="post-actions">
                             <button type="button" class="post-like-btn" onclick="UI.toggleLike(event, ${post.post_id}, this, this.querySelector('.like-count'))" style="cursor: pointer; transition: transform 0.2s;">
                                 <span class="heart-icon ${post.is_liked_by_me ? 'icon-liked' : ''}" style="filter: drop-shadow(0 0 8px rgba(255,255,255,0.4)); display: inline-block; transition: transform 0.2s;">
@@ -2004,6 +2283,10 @@ window.saveProfileData = function() {
     const db = DB.get();
     const sid = db.user ? db.user.squadId : '';
 
+    localStorage.setItem('profile_currentWt', data.currentWeight);
+    localStorage.setItem('profile_targetWt', data.goalWeight);
+    localStorage.setItem('profile_goalDate', data.goalDate);
+
     fetch(`${baseUrl}/api/profile`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -2016,7 +2299,22 @@ window.saveProfileData = function() {
         })
     }).catch(e => console.error(e));
     
-    alert("Profile Saved! Your posts will now show your name.");
+    const btn = document.getElementById('save-profile-btn');
+    if (btn) {
+        const og = btn.innerHTML;
+        btn.innerHTML = '✓ Saved!';
+        btn.style.background = 'rgba(46, 204, 113, 0.4)';
+        btn.style.color = '#FFF';
+        setTimeout(() => {
+            btn.innerHTML = og;
+            btn.style.background = '';
+            btn.style.color = '';
+        }, 2000);
+    }
+    
+    if (typeof window.syncGoalCalendar === 'function') {
+        window.syncGoalCalendar();
+    }
 };
 
 window.loadProfileData = function() {
@@ -2321,25 +2619,29 @@ UI.finishWorkoutTimer = async function() {
     app.navTo('history');
 };
 
+window.getLocalISO = (dateObj) => {
+    const offset = dateObj.getTimezoneOffset();
+    dateObj = new Date(dateObj.getTime() - (offset*60*1000));
+    return dateObj.toISOString().split('T')[0];
+};
+
 async function loadHistoryHeatmap() {
     const container = document.getElementById('heatmap-grid');
     if (!container) return;
 
     try {
-        const username = localStorage.getItem('username') || 'bl';
-        const response = await fetch(`http://127.0.0.1:5001/api/history?username=${username}&t=${Date.now()}`);
-        const data = await response.json();
-        
-        let activeDates = Array.isArray(data) ? data : (data.dates || []);
-        console.log("Verified DB Dates:", activeDates);
+        const workoutHistory = JSON.parse(localStorage.getItem('workout_history') || '[]');
 
         container.innerHTML = ''; 
 
-        for (let i = 29; i >= 0; i--) {
-            const d = new Date();
-            d.setDate(d.getDate() - i);
-            
-            const formattedDate = d.toLocaleDateString('en-CA'); 
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = now.getMonth();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+        for (let i = 1; i <= daysInMonth; i++) {
+            const d = new Date(year, month, i);
+            const formattedDate = window.getLocalISO(d); 
             
             const square = document.createElement('div');
             square.className = 'heatmap-square';
@@ -2354,7 +2656,8 @@ async function loadHistoryHeatmap() {
             square.style.color = 'rgba(255, 255, 255, 0.6)';
             square.style.cursor = 'pointer';
             
-            if (activeDates.includes(formattedDate)) {
+            const hasWorkout = workoutHistory.some(w => w.date === formattedDate);
+            if (hasWorkout) {
                 square.classList.add('active-day');
                 square.style.color = '#0b0f19';
             }
@@ -2388,48 +2691,52 @@ window.fetchAndDisplayWorkoutDetails = async function(formattedDate) {
 
     try {
         const historyData = JSON.parse(localStorage.getItem('workout_history') || '[]');
-        const workout = historyData.find(w => w.date === formattedDate);
+        const daysWorkouts = historyData.filter(w => w.date === formattedDate);
         
+        console.log("Checking history for:", formattedDate, "Found:", daysWorkouts);
+
         // Parse date for ui display
         const [y, m, dNumToken] = formattedDate.split('-');
         const d = new Date(Number(y), Number(m)-1, Number(dNumToken));
+        const prettyDate = d.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric"});
 
-        if (workout && workout.exercises && workout.exercises.length > 0) {
-            const prettyDate = d.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric"});
-
+        if (daysWorkouts.length > 0) {
+            let exercisesHtml = '<ul style="list-style-type: none; padding-left: 0; margin-bottom: var(--space-md);">';
             
-            let exercisesHtml = '';
-            if (workout.exercises && workout.exercises.length > 0) {
-                exercisesHtml = '<ul style="list-style-type: none; padding-left: 0; margin-bottom: var(--space-md);">';
-                workout.exercises.forEach(ex => {
-                    const dbEx = window.exerciseDB ? window.exerciseDB.find(e => e.name === ex.name) : null;
-                    const isCardio = dbEx && dbEx.muscle && dbEx.muscle.toLowerCase() === 'cardio';
-                    const wUnit = isCardio ? 'km/mi' : 'kg';
-                    const rUnit = isCardio ? 'min' : 'reps';
+            daysWorkouts.forEach(workout => {
+                if (workout.exercises && workout.exercises.length > 0) {
+                    workout.exercises.forEach(ex => {
+                        const dbEx = window.exerciseDB ? window.exerciseDB.find(e => e.name === ex.name) : null;
+                        const isCardio = dbEx && dbEx.muscle && dbEx.muscle.toLowerCase() === 'cardio';
+                        const wUnit = isCardio ? 'km/mi' : 'kg';
+                        const rUnit = isCardio ? 'min' : 'reps';
 
-                    let setHTML = '';
-                    if (ex.setDetails && ex.setDetails.length > 0) {
-                        const firstSet = ex.setDetails[0];
-                        const allSame = ex.setDetails.every(s => s.weight === firstSet.weight && s.reps === firstSet.reps);
+                        let setHTML = '';
+                        if (ex.setDetails && ex.setDetails.length > 0) {
+                            const firstSet = ex.setDetails[0];
+                            const allSame = ex.setDetails.every(s => s.weight === firstSet.weight && s.reps === firstSet.reps);
 
-                        if (allSame) {
-                            setHTML = `<span>${firstSet.weight}${wUnit} × ${firstSet.reps} ${rUnit}</span><span style="opacity: 0.5; margin-left: 8px;">(${ex.setDetails.length} sets)</span>`;
+                            if (allSame) {
+                                setHTML = `<span>${firstSet.weight}${wUnit} × ${firstSet.reps} ${rUnit}</span><span style="opacity: 0.5; margin-left: 8px;">(${ex.setDetails.length} sets)</span>`;
+                            } else {
+                                setHTML = ex.setDetails.map((s, i) => `<div style="margin-top: 2px;">Set ${i+1}: ${s.weight}${wUnit} × ${s.reps} ${rUnit}</div>`).join('');
+                            }
                         } else {
-                            setHTML = ex.setDetails.map((s, i) => `<div style="margin-top: 2px;">Set ${i+1}: ${s.weight}${wUnit} × ${s.reps} ${rUnit}</div>`).join('');
+                            setHTML = `<span>${ex.weight || 0}${wUnit} × ${ex.reps || 0} ${rUnit}</span><span style="opacity: 0.5; margin-left: 8px;">(${ex.sets || 0} sets)</span>`;
                         }
-                    } else {
-                        setHTML = `<span>${ex.weight}${wUnit} × ${ex.reps} ${rUnit}</span><span style="opacity: 0.5; margin-left: 8px;">(${ex.sets} sets)</span>`;
-                    }
 
-                    exercisesHtml += `<li style="padding: 10px; background: rgba(0, 209, 255, 0.05); margin-bottom: 8px; border-radius: var(--radius-sm); border-left: 3px solid var(--accent-cyan);">
-                        <strong style="color: #FFF; font-size: 1.05rem;">${ex.name}</strong>
-                        <div style="color: var(--text-silver); font-size: 0.9rem; margin-top: 4px;">
-                            ${setHTML}
-                        </div>
-                    </li>`;
-                });
-                exercisesHtml += '</ul>';
-            }
+                        exercisesHtml += `<li style="padding: 10px; background: rgba(0, 209, 255, 0.05); margin-bottom: 8px; border-radius: var(--radius-sm); border-left: 3px solid var(--accent-cyan);">
+                            <strong style="color: #FFF; font-size: 1.05rem;">${ex.name}</strong>
+                            <div style="color: var(--text-silver); font-size: 0.9rem; margin-top: 4px;">
+                                ${setHTML}
+                            </div>
+                        </li>`;
+                    });
+                }
+            });
+            exercisesHtml += '</ul>';
+            
+            const workoutCap = daysWorkouts.find(w => w.note || w.caption)?.note || daysWorkouts.find(w => w.note || w.caption)?.caption || 'No caption';
             
             cardContainer.innerHTML = `
                 <div class="fade-in" style="width: 100%; text-align: left; padding: var(--space-lg);">
@@ -2439,26 +2746,27 @@ window.fetchAndDisplayWorkoutDetails = async function(formattedDate) {
                     <div style="display: flex; gap: var(--space-md); margin-bottom: var(--space-md);">
                         <div style="background: rgba(0, 209, 255, 0.1); padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid rgba(0, 209, 255, 0.3);">
                             <span style="display: block; font-size: 0.75rem; color: var(--accent-cyan);">Notes / Caption</span>
-                            <strong style="color: #FFF; font-size: 0.9rem;">${workout.caption || 'No caption'}</strong>
+                            <strong style="color: #FFF; font-size: 0.9rem;">${workoutCap}</strong>
                         </div>
                     </div>
-                    <button class="neon-btn btn-share-workout" style="width: 100%; margin-top: var(--space-sm);" onclick="UI.shareWorkout(event, '${workout.caption ? workout.caption.replace(/'/g, "\\'") : 'Completed a great workout!'}')">
+                    <button class="neon-btn btn-share-workout" style="width: 100%; margin-top: var(--space-sm);" onclick="window.initiateShare('${workoutCap.replace(/'/g, "\\'")}', event)">
                         Share to Squad 🚀
                     </button>
                 </div>
             `;
         } else {
-            const prettyDate = d.toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric"});
-            
-            cardContainer.innerHTML = '<div class="fade-in" style="padding: 20px;">' +
-                '<h1 style="font-size: 3rem; margin-bottom: var(--space-sm); filter: grayscale(1); opacity: 0.5;">💤</h1>' +
-                '<h3 style="color: #FFF; margin-bottom: 4px;">Rest Day</h3>' +
-                '<p class="text-sec" style="font-size: 0.9rem;">No workout recorded for ' + prettyDate + '.</p>' +
-            '</div>';
+            cardContainer.innerHTML = `
+                <div class="fade-in" style="width: 100%; text-align: center; padding: var(--space-xl);">
+                    <span style="font-size: 0.8rem; color: var(--text-silver); text-transform: uppercase; font-weight: bold; letter-spacing: 1px;">${prettyDate}</span>
+                    <div style="font-size: 3rem; margin: 15px 0;">🛋️</div>
+                    <h3 class="text-sec" style="font-size: 1.2rem; color: #FFF;">Rest Day</h3>
+                    <p style="color: var(--text-dim); font-size: 0.9rem;">No workouts recorded.</p>
+                </div>
+            `;
         }
     } catch (e) {
-        cardContainer.innerHTML = '<p class="text-danger">Error fetching history properly.</p>';
-        console.error("Local history parse error:", e);
+        console.error("Failed parsing history:", e);
+        cardContainer.innerHTML = `<p class="text-sec fade-in">Error loading data.</p>`;
     }
 };
 

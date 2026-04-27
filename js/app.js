@@ -36,6 +36,14 @@ const app = {
         // Initialize global active session cache
         window.activeSession = { startTime: null, logs: [], timerInterval: null, elapsedStr: '00:00' };
 
+        // Daily Hydration Reset
+        const lastHydrationDate = localStorage.getItem('last_hydration_date');
+        const today = new Date().toDateString();
+        if (lastHydrationDate !== today) {
+            localStorage.setItem('hydrationToday', 0);
+            localStorage.setItem('last_hydration_date', today);
+        }
+
         // Nav to auth initially to hide other screens until Firebase confirms user
         this.navTo('auth');
 
@@ -1369,21 +1377,21 @@ const app = {
         const historyData = JSON.parse(localStorage.getItem('workout_history') || '[]');
         window.selectedHistoryDate = window.selectedHistoryDate || new Date().toLocaleDateString('en-CA');
 
-        let html = `<div style="width: 100%; color: #A0A0A0; font-weight: bold; font-size: 0.8rem; text-transform: uppercase; margin-bottom: 8px;">${new Date().toLocaleDateString('en-US', {month: 'long', year: 'numeric'})}</div><div style="display: flex; gap: 8px;">`;
+        let html = '<div style="display: flex; gap: 8px;">';
         const pastDays = 14;
         const forwardDays = 7;
 
         const todayDate = new Date();
-        const todayStr = todayDate.toLocaleDateString('en-CA');
+        const todayStr = window.getLocalISO ? window.getLocalISO(todayDate) : todayDate.toLocaleDateString('en-CA');
         const yesterdayDate = new Date(); yesterdayDate.setDate(todayDate.getDate() - 1);
-        const yesterdayStr = yesterdayDate.toLocaleDateString('en-CA');
+        const yesterdayStr = window.getLocalISO ? window.getLocalISO(yesterdayDate) : yesterdayDate.toLocaleDateString('en-CA');
         const tomorrowDate = new Date(); tomorrowDate.setDate(todayDate.getDate() + 1);
-        const tomorrowStr = tomorrowDate.toLocaleDateString('en-CA');
+        const tomorrowStr = window.getLocalISO ? window.getLocalISO(tomorrowDate) : tomorrowDate.toLocaleDateString('en-CA');
         
         for (let i = pastDays; i >= -forwardDays; i--) {
             const d = new Date();
             d.setDate(d.getDate() - i);
-            const dateStr = d.toLocaleDateString('en-CA');
+            const dateStr = window.getLocalISO ? window.getLocalISO(d) : d.toLocaleDateString('en-CA');
             const dayName = d.toLocaleDateString('en-US', { weekday: 'short' });
             const dayNum = d.getDate();
 
@@ -1499,6 +1507,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     // Standard iOS passive listener fix
     window.addEventListener('touchmove', function() {}, {passive: false});
+
+    if (!document.getElementById('global-workout-overlay') && typeof UI !== 'undefined' && typeof UI.templates.workoutOverlay === 'function') {
+        const overlayDiv = document.createElement('div');
+        overlayDiv.id = 'global-workout-overlay';
+        overlayDiv.style.cssText = 'display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100vh; z-index: 9000; background: #121212; overflow-y: auto; padding-bottom: 100px;';
+        overlayDiv.innerHTML = UI.templates.workoutOverlay();
+        document.body.appendChild(overlayDiv);
+    }
 
     app.init();
 });
